@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Backend FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scada-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CALC_ENGINE=python  # python | octave
+      - OCTAVE_TIMEOUT=30
+      - LOG_LEVEL=info
+    volumes:
+      - ./backend:/app/backend
+    command: python main.py
+    networks:
+      - scada-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Frontend React + Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: scada-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - scada-network
+
+networks:
+  scada-network:
+    driver: bridge
+
+volumes:
+  scada_data:
