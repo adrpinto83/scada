@@ -518,7 +518,9 @@ async def websocket_endpoint(websocket: WebSocket):
             await asyncio.sleep(1.0)  # Envía cada segundo
 
     except Exception as e:
+        import traceback
         logger.error(f"WebSocket error: {e}")
+        logger.error(traceback.format_exc())
     finally:
         logger.info("Cliente WebSocket desconectado")
 

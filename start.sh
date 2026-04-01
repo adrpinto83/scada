@@ -23,6 +23,13 @@ if [ ! -d "$BACKEND_DIR" ] || [ ! -d "$FRONTEND_DIR" ]; then
     exit 1
 fi
 
+# Limpia procesos anteriores
+echo -e "${YELLOW}  Limpiando procesos anteriores...${NC}"
+pkill -9 -f "python main.py" 2>/dev/null || true
+pkill -9 -f "vite" 2>/dev/null || true
+pkill -9 -f "node" 2>/dev/null || true
+sleep 2
+
 # Función para limpiar procesos al salir
 cleanup() {
     echo -e "\n${YELLOW}⏹️  Deteniendo servicios...${NC}"
@@ -82,9 +89,9 @@ if [ ! -d "node_modules" ]; then
     npm install -q
 fi
 
-# Inicia frontend en background
+# Inicia frontend en background (puerto 5173)
 echo -e "${GREEN}  ✓ Frontend iniciado${NC}"
-npm run dev &
+VITE_PORT=5173 npm run dev -- --port 5173 &
 FRONTEND_PID=$!
 
 # Espera a que frontend esté listo
