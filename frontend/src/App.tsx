@@ -266,8 +266,9 @@ export default function App() {
 
       {/* ══ FOOTER ══════════════════════════════════════════════ */}
       <footer className="scada-footer">
-        <span>SCADA Fraccionadora v1.0 · Shell Control Problem · MPC Multivariable 7CV×3MV×2DV</span>
-        <span>Universidad de Oriente (UDO) · Postgrado Automatización · 2024</span>
+        <span>SCADA Fraccionadora v1.0 · Shell Control Problem · Control Descentralizado SISO</span>
+        <span>Universidad de Oriente (UDO) · Postgrado Automatización e Informática Industrial · Abril 2026</span>
+        <span>Desarrollado por Ing. Rousemary Torres e Ing. Adrian Pinto</span>
         <span>
           {isConnected
             ? <span style={{ color: "#00ff88" }}>● WebSocket activo</span>
