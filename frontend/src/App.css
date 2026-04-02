@@ -847,6 +847,37 @@ html, body {
   backdrop-filter: blur(4px);
 }
 
+/* Click zone sobre las Tendencias */
+.trends-click-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.trends-click-zone:hover .trends-expand-hint {
+  opacity: 1;
+}
+
+.trends-expand-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background: rgba(0,212,255,0.12);
+  border: 1px solid rgba(0,212,255,0.35);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
 /* Botones de header del panel */
 .panel-header-actions {
   display: flex;
@@ -1050,6 +1081,15 @@ html, body {
 }
 
 .pid-focus-body .pid-click-zone .pid-expand-hint {
+  display: none;
+}
+
+.pid-focus-body .trends-click-zone {
+  cursor: default;
+  flex: 1;
+}
+
+.pid-focus-body .trends-click-zone .trends-expand-hint {
   display: none;
 }
 

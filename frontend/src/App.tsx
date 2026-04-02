@@ -20,7 +20,8 @@ type ViewMode = "pid" | "trends" | "split";
 export default function App() {
   const [simRunning, setSimRunning] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("split");
-  const [pidFocus, setPidFocus] = useState(false);          // ← modo foco overlay
+  const [pidFocus, setPidFocus] = useState(false);          // ← modo foco overlay P&ID
+  const [trendsFocus, setTrendsFocus] = useState(false);    // ← modo foco overlay Tendencias
   const [sidebarTab, setSidebarTab] = useState<"control" | "alarms" | "engine">("control");
   const { isConnected, lastData } = useWebSocket();
   const { engineStatus } = useEngineStatus();
@@ -190,13 +191,22 @@ export default function App() {
             </button>
             <div className="view-mode-spacer" />
             {lastData && (
-              <button
-                className="view-btn expand-btn"
-                title="Expandir P&ID a pantalla completa"
-                onClick={() => setPidFocus(true)}
-              >
-                ⤢ Expandir P&ID
-              </button>
+              <>
+                <button
+                  className="view-btn expand-btn"
+                  title="Expandir P&ID a pantalla completa"
+                  onClick={() => setPidFocus(true)}
+                >
+                  ⤢ Expandir P&ID
+                </button>
+                <button
+                  className="view-btn expand-btn"
+                  title="Expandir Tendencias a pantalla completa"
+                  onClick={() => setTrendsFocus(true)}
+                >
+                  ⤢ Expandir Tendencias
+                </button>
+              </>
             )}
           </div>
 
@@ -246,12 +256,32 @@ export default function App() {
             <div className={`main-panel trends-panel ${viewMode === "trends" ? "full-height" : ""}`}>
               <div className="panel-header">
                 <span className="panel-header-title">Tendencias en Tiempo Real</span>
-                <span className="panel-header-tag">
-                  {lastData ? `${lastData.history?.t.length ?? 0} muestras` : "Sin datos"}
-                </span>
+                <div className="panel-header-actions">
+                  <span className="panel-header-tag">
+                    {lastData ? `${lastData.history?.t.length ?? 0} muestras` : "Sin datos"}
+                  </span>
+                  {lastData && (
+                    <button
+                      className="panel-expand-btn"
+                      title="Ver Tendencias en pantalla completa"
+                      onClick={() => setTrendsFocus(true)}
+                    >
+                      ⤢
+                    </button>
+                  )}
+                </div>
               </div>
               {lastData ? (
-                <Trends state={lastData} />
+                <div
+                  className="trends-click-zone"
+                  title="Click para expandir las Tendencias"
+                  onClick={() => setTrendsFocus(true)}
+                >
+                  <Trends state={lastData} />
+                  <div className="trends-expand-hint">
+                    <span>⤢ Click para expandir</span>
+                  </div>
+                </div>
               ) : (
                 <div className="panel-placeholder">
                   <div className="placeholder-icon">≋</div>
@@ -348,9 +378,83 @@ export default function App() {
         </div>
       )}
 
+      {/* ══ TRENDS FOCUS OVERLAY (modal pantalla completa) ══════ */}
+      {trendsFocus && lastData && (
+        <div className="pid-focus-overlay" onClick={() => setTrendsFocus(false)}>
+          <div className="pid-focus-inner" onClick={(e) => e.stopPropagation()}>
+            {/* Barra superior del overlay */}
+            <div className="pid-focus-header">
+              <div className="pid-focus-title">
+                <span className="pid-focus-icon">≋</span>
+                <span>Tendencias en Tiempo Real — Fraccionadora de Petróleo Pesado</span>
+                <span className="pid-focus-tag">{lastData.history?.t.length ?? 0} muestras</span>
+              </div>
+              <div className="pid-focus-kpis">
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">AT-101</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#00d4ff" }}>
+                    {lastData.y[0].toFixed(4)}
+                  </span>
+                </div>
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">AT-201</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#00d4ff" }}>
+                    {lastData.y[1].toFixed(4)}
+                  </span>
+                </div>
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">u1</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#a78bfa" }}>
+                    {lastData.u[0].toFixed(4)}
+                  </span>
+                </div>
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">u2</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#a78bfa" }}>
+                    {lastData.u[1].toFixed(4)}
+                  </span>
+                </div>
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">u3</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#a78bfa" }}>
+                    {lastData.u[2].toFixed(4)}
+                  </span>
+                </div>
+                <div className="pid-focus-kpi">
+                  <span className="pid-focus-kpi-label">t</span>
+                  <span className="pid-focus-kpi-val" style={{ color: "#00ff88" }}>
+                    {lastData.t.toFixed(1)} min
+                  </span>
+                </div>
+              </div>
+              <button
+                className="pid-focus-close"
+                onClick={() => setTrendsFocus(false)}
+                title="Cerrar (Esc)"
+              >
+                ✕ CERRAR
+              </button>
+            </div>
+
+            {/* Tendencias a máximo tamaño */}
+            <div className="pid-focus-body">
+              <Trends state={lastData} />
+            </div>
+
+            {/* Hint inferior */}
+            <div className="pid-focus-footer">
+              <span>Presiona <kbd>Esc</kbd> o haz click fuera para cerrar</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cerrar foco con Escape */}
       {pidFocus && (
         <KeyboardListener onEscape={() => setPidFocus(false)} />
+      )}
+      {trendsFocus && (
+        <KeyboardListener onEscape={() => setTrendsFocus(false)} />
       )}
     </div>
   );
