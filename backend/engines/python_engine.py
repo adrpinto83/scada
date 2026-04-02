@@ -12,6 +12,7 @@ from simulation.fopdt_model import FOPDTModel
 from simulation.uncertainty import UncertaintyManager
 from simulation.process_matrix import K_MATRIX, TAU_MATRIX, THETA_MATRIX, DELTA_K_MATRIX
 from control.controller import MPCController
+from control.decentralized_controller import DecentralizedController
 from control.constraints import ConstraintChecker
 from analysis.bandwidth import BandwidthAnalyzer
 
@@ -23,15 +24,32 @@ class PythonEngine:
     Implementa todas las funciones del protocolo CalcEngine.
     """
 
-    def __init__(self):
-        """Inicializa el motor Python."""
+    def __init__(self, controller_type: str = "decentralized"):
+        """
+        Inicializa el motor Python.
+
+        Args:
+            controller_type: Tipo de controlador ('mpc' | 'decentralized')
+        """
         self._name = "python"
         self._available = True
 
         # Instancia los componentes
         self.fopdt_model = FOPDTModel(dt=1.0)
         self.uncertainty_manager = UncertaintyManager()
+
+        # Ambos controladores disponibles
         self.mpc_controller = MPCController(Np=15, Nc=5, dt=1.0)
+        self.decentralized_controller = DecentralizedController(dt=1.0)
+
+        # Controlador activo (por defecto: descentralizado SISO)
+        self.controller_type = controller_type
+        self._active_controller = (
+            self.decentralized_controller
+            if controller_type == "decentralized"
+            else self.mpc_controller
+        )
+
         self.constraint_checker = ConstraintChecker()
         self.bandwidth_analyzer = BandwidthAnalyzer(dt=1.0)
 
@@ -118,8 +136,8 @@ class PythonEngine:
             d_measured = np.array(d_measured, dtype=np.float64).flatten()
             K_real = np.array(K_real, dtype=np.float64)
 
-            # Llama al controlador MPC
-            result = self.mpc_controller.compute_control(
+            # Llama al controlador activo (MPC o Descentralizado)
+            result = self._active_controller.compute_control(
                 y_current,
                 y_setpoint,
                 u_previous,
@@ -275,3 +293,76 @@ class PythonEngine:
         self.fopdt_model.reset()
         self.constraint_checker.reset()
         self.uncertainty_manager.reset()
+        if hasattr(self.decentralized_controller, 'reset'):
+            self.decentralized_controller.reset()
+
+    def switch_controller(self, controller_type: str) -> Dict:
+        """
+        Cambia entre controlador MPC centralizado y SISO descentralizado.
+
+        Args:
+            controller_type: 'mpc' | 'decentralized'
+
+        Returns:
+            result: Diccionario con estado del cambio
+        """
+        if controller_type not in ["mpc", "decentralized"]:
+            return {
+                "success": False,
+                "active": self.controller_type,
+                "message": f"Tipo de controlador inválido: {controller_type}. "
+                          "Opciones: 'mpc' o 'decentralized'",
+            }
+
+        if controller_type == self.controller_type:
+            return {
+                "success": True,
+                "active": self.controller_type,
+                "message": f"Controlador ya activo: {controller_type}",
+            }
+
+        # Cambia el controlador
+        self.controller_type = controller_type
+        self._active_controller = (
+            self.decentralized_controller
+            if controller_type == "decentralized"
+            else self.mpc_controller
+        )
+
+        # Reinicia el nuevo controlador activo
+        if hasattr(self._active_controller, 'reset'):
+            self._active_controller.reset()
+
+        return {
+            "success": True,
+            "active": self.controller_type,
+            "message": f"Controlador cambiado a {controller_type} correctamente",
+        }
+
+    def get_controller_info(self) -> Dict:
+        """Retorna información del controlador activo."""
+        info = {
+            "type": self.controller_type,
+            "name": ("Control Descentralizado SISO"
+                    if self.controller_type == "decentralized"
+                    else "Control Centralizado MPC"),
+        }
+
+        if self.controller_type == "decentralized":
+            info.update({
+                "description": "Tres lazos SISO independientes (PI + Feedforward)",
+                "loops": {
+                    "loop1": "y1 (AT-101) → u1 (FCV-101) [PI]",
+                    "loop2": "y2 (AT-201) → u2 (FCV-201) [PI]",
+                    "loop3": "d1,d2 → u3 (FCV-301) [Feedforward]",
+                },
+                "tuning": self.decentralized_controller.get_tuning(),
+                "stats": self.decentralized_controller.get_stats(),
+            })
+        else:
+            info.update({
+                "description": "MPC multivariable 7CV×3MV con horizonte Np/Nc",
+                "horizons": self.mpc_controller.get_horizons(),
+            })
+
+        return info

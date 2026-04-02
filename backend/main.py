@@ -70,6 +70,11 @@ class EngineSwitchRequest(BaseModel):
     engine: str = Field(..., pattern="^(python|octave)$")
 
 
+class ControllerSwitchRequest(BaseModel):
+    """Request para cambiar tipo de controlador."""
+    controller: str = Field(..., pattern="^(mpc|decentralized)$")
+
+
 class ScenarioRequest(BaseModel):
     """Request para cargar escenario de prueba."""
     case: int = Field(..., ge=1, le=5)
@@ -409,6 +414,40 @@ async def switch_engine(req: EngineSwitchRequest):
     """Cambia motor de cálculo en tiempo de ejecución."""
     result = sim_state.engine_factory.switch_engine(req.engine)
     return result
+
+
+@app.get("/api/controller/info")
+async def get_controller_info():
+    """Retorna información del controlador activo."""
+    engine = sim_state.engine_factory.get_active_engine()
+    if hasattr(engine, 'get_controller_info'):
+        return engine.get_controller_info()
+    return {"error": "Engine actual no soporta info de controlador"}
+
+
+@app.post("/api/controller/switch")
+async def switch_controller(req: ControllerSwitchRequest):
+    """
+    Cambia entre controlador MPC centralizado y SISO descentralizado.
+
+    Opciones:
+    - 'mpc': Control Predictivo Multivariable (7CV×3MV)
+    - 'decentralized': Control Descentralizado SISO (3 lazos PI independientes)
+    """
+    engine = sim_state.engine_factory.get_active_engine()
+    if hasattr(engine, 'switch_controller'):
+        result = engine.switch_controller(req.controller)
+
+        # Agrega alarma informativa
+        controller_name = "Descentralizado SISO" if req.controller == "decentralized" else "Centralizado MPC"
+        sim_state.add_alarm(
+            message=f"Controlador cambiado a: {controller_name}",
+            severity="INFO",
+            tag="CTRL-SYSTEM"
+        )
+
+        return result
+    return {"success": False, "message": "Engine actual no soporta cambio de controlador"}
 
 
 @app.get("/api/engine/benchmark")
