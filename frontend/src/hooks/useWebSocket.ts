@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ProcessState } from "../types";
+import { getWebSocketURL } from "../config";
 
 interface UseWebSocketOptions {
   url?: string;
@@ -18,7 +19,7 @@ interface UseWebSocketOptions {
  */
 export function useWebSocket(options: UseWebSocketOptions = {}) {
   const {
-    url = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws/realtime`,
+    url = getWebSocketURL(),
     onMessage,
     onError,
     onOpen,

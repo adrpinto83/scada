@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useEngineStatus } from "./hooks/useEngineStatus";
+import { apiURL } from "./config";
 import type { ProcessState } from "./types";
 
 import PIDDiagram from "./components/PIDDiagram";
@@ -30,19 +31,19 @@ export default function App() {
 
   const handleStart = async () => {
     try {
-      const res = await fetch("/api/simulation/start", { method: "POST" });
+      const res = await fetch(apiURL("/api/simulation/start"), { method: "POST" });
       if (res.ok) setSimRunning(true);
     } catch {}
   };
   const handleStop = async () => {
     try {
-      const res = await fetch("/api/simulation/stop", { method: "POST" });
+      const res = await fetch(apiURL("/api/simulation/stop"), { method: "POST" });
       if (res.ok) setSimRunning(false);
     } catch {}
   };
   const handleReset = async () => {
     try {
-      const res = await fetch("/api/simulation/reset", { method: "POST" });
+      const res = await fetch(apiURL("/api/simulation/reset"), { method: "POST" });
       if (res.ok) setSimRunning(false);
     } catch {}
   };

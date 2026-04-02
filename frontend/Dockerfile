@@ -2,6 +2,10 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
+# Argumento para la URL del backend (se pasa durante el build)
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copia archivos de proyecto
 COPY package*.json ./
 COPY tsconfig.json ./
@@ -14,7 +18,7 @@ COPY src ./src
 # Instala dependencias
 RUN npm ci
 
-# Build
+# Build (Vite inyectará VITE_API_URL en el bundle)
 RUN npm run build
 
 # Etapa 2: Servir con nginx

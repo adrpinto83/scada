@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { ProcessState } from "../types";
+import { apiURL } from "../config";
 
 interface Props {
   state: ProcessState | null;
@@ -19,7 +20,7 @@ export default function OperatorPanel({ state }: Props) {
 
   const handleSetSetpoint = async () => {
     try {
-      const res = await fetch("/api/control/setpoints", {
+      const res = await fetch(apiURL("/api/control/setpoints"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ y1_sp: y1Sp, y2_sp: y2Sp }),
@@ -30,7 +31,7 @@ export default function OperatorPanel({ state }: Props) {
 
   const handleSetUncertainty = async () => {
     try {
-      const res = await fetch("/api/uncertainty", {
+      const res = await fetch(apiURL("/api/uncertainty"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ epsilons }),
@@ -41,7 +42,7 @@ export default function OperatorPanel({ state }: Props) {
 
   const handleLoadScenario = async (caseNum: number) => {
     try {
-      const res = await fetch("/api/scenario/load", {
+      const res = await fetch(apiURL("/api/scenario/load"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ case: caseNum }),
@@ -56,7 +57,7 @@ export default function OperatorPanel({ state }: Props) {
 
   const handleAnalyzerFault = async (analyzer: "y1" | "y2", fault: boolean) => {
     try {
-      const res = await fetch("/api/analyzer/fault", {
+      const res = await fetch(apiURL("/api/analyzer/fault"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ analyzer, fault }),

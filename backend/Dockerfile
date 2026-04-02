@@ -20,5 +20,8 @@ COPY . .
 # Expone puerto
 EXPOSE 8000
 
+# Railway asigna un puerto dinámicamente a través de la variable PORT
+ENV PORT=8000
+
 # Inicia aplicación
 CMD ["python", "main.py"]

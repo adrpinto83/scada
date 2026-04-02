@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { EngineStatus } from "../types";
+import { apiURL } from "../config";
 
 interface Props {
   engineStatus: EngineStatus;
@@ -12,7 +13,7 @@ export default function EnginePanel({ engineStatus }: Props) {
 
   const handleSwitch = async (engine: "python" | "octave") => {
     try {
-      const res = await fetch("/api/engine/switch", {
+      const res = await fetch(apiURL("/api/engine/switch"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ engine }),
@@ -28,7 +29,7 @@ export default function EnginePanel({ engineStatus }: Props) {
   const handleBenchmark = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/engine/benchmark");
+      const res = await fetch(apiURL("/api/engine/benchmark"));
       if (res.ok) setBenchmark(await res.json());
     } finally {
       setLoading(false);

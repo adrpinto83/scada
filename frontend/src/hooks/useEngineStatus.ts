@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { EngineStatus } from "../types";
+import { apiURL } from "../config";
 
 interface UseEngineStatusOptions {
   pollInterval?: number; // ms
@@ -19,7 +20,7 @@ export function useEngineStatus(options: UseEngineStatusOptions = {}) {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await fetch("/api/engine/status");
+        const response = await fetch(apiURL("/api/engine/status"));
         if (!response.ok) throw new Error("Error fetching engine status");
         const data: EngineStatus = await response.json();
         setEngineStatus(data);
