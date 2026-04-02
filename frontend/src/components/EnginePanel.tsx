@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { EngineStatus } from "../types";
 import { apiURL } from "../config";
 

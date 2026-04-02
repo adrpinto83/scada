@@ -3,7 +3,6 @@ import "./App.css";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useEngineStatus } from "./hooks/useEngineStatus";
 import { apiURL } from "./config";
-import type { ProcessState } from "./types";
 
 import PIDDiagram from "./components/PIDDiagram";
 import Trends from "./components/Trends";

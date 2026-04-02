@@ -1,4 +1,3 @@
-import React from "react";
 import type { ProcessState } from "../types";
 
 interface Props {

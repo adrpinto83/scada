@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { ProcessState } from "../types";
 import { apiURL } from "../config";
 
