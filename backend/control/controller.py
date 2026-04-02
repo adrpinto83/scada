@@ -16,11 +16,16 @@ Solucionador: CVXPY con problema QP convexo.
 import numpy as np
 from typing import Dict, Optional, Tuple
 import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import cvxpy as cp
+    _CVXPY_AVAILABLE = True
 except ImportError:
-    raise ImportError("CVXPY no está instalado. Instala con: pip install cvxpy")
+    _CVXPY_AVAILABLE = False
+    logger.warning("CVXPY no está instalado. Se usará controlador proporcional de respaldo.")
 
 
 class MPCController:
@@ -110,36 +115,58 @@ class MPCController:
         d_measured: np.ndarray,
         K_real: np.ndarray,
     ) -> Dict:
-        """Controlador proporcional simplificado (reemplaza MPC complejo)."""
+        """
+        Calcula la acción de control óptima.
+
+        Intenta usar MPC con CVXPY si está disponible.
+        Si CVXPY no está disponible o el solver falla, usa controlador
+        proporcional con feedforward como respaldo.
+        """
+        if _CVXPY_AVAILABLE:
+            try:
+                result = self.compute_control_mpc_original(
+                    y_current, y_setpoint, u_previous, d_measured, K_real
+                )
+                if result["feasible"]:
+                    return result
+                logger.warning("MPC infeasible, usando controlador proporcional de respaldo")
+            except Exception as e:
+                logger.error(f"MPC error: {e}, usando controlador proporcional de respaldo")
+
+        return self._proportional_fallback(y_current, y_setpoint, u_previous, d_measured)
+
+    def _proportional_fallback(
+        self,
+        y_current: np.ndarray,
+        y_setpoint: np.ndarray,
+        u_previous: np.ndarray,
+        d_measured: np.ndarray,
+    ) -> Dict:
+        """Controlador proporcional con feedforward — respaldo cuando MPC falla."""
         try:
-            # Calcula error en setpoints
             error_y1 = y_setpoint[0] - y_current[0]
             error_y2 = y_setpoint[1] - y_current[1]
 
-            # Ganancias proporcionales calibradas
-            Kp1 = 0.3  # Para y1
-            Kp2 = 0.3  # Para y2
-            Kp3 = 0.1  # Para u3 (reflujo)
+            Kp1 = 0.3
+            Kp2 = 0.3
+            Kp3 = 0.1
 
-            # Control proporcional
             u_optimal = np.zeros(3)
-            u_optimal[0] = Kp1 * error_y1  # u1 controla y1
-            u_optimal[1] = Kp2 * error_y2  # u2 controla y2
-            u_optimal[2] = -Kp3 * (d_measured[0] + d_measured[1])  # Feedforward de perturbaciones
-
-            # Saturación
+            u_optimal[0] = Kp1 * error_y1
+            u_optimal[1] = Kp2 * error_y2
+            u_optimal[2] = -Kp3 * (d_measured[0] + d_measured[1])
             u_optimal = np.clip(u_optimal, -0.5, 0.5)
 
             return {
                 "u_optimal": u_optimal,
                 "u_delta": u_optimal - u_previous,
                 "y_predicted": y_current,
-                "cost": np.sum(np.abs(y_setpoint[:2] - y_current[:2])),
+                "cost": float(np.sum(np.abs(y_setpoint[:2] - y_current[:2]))),
                 "feasible": True,
-                "status": "ok",
+                "status": "ok (proportional fallback)",
             }
         except Exception as e:
-            logger.error(f"Control error: {e}")
+            logger.error(f"Proportional fallback error: {e}")
             return {
                 "u_optimal": np.zeros(3),
                 "u_delta": np.zeros(3),

@@ -1,127 +1,318 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
 import type { ProcessState } from "../types";
 
 interface Props {
   state: ProcessState;
 }
 
-/**
- * Gráficas de tendencias en tiempo real.
- *
- * Muestra CVs, MVs y DVs en un canvas simple.
- * En producción, usar Recharts o Chart.js para mejor rendimiento.
- */
+const CV_COLORS = ["#00d4ff", "#00ff88", "#a78bfa", "#fb923c", "#f472b6", "#34d399", "#fbbf24"];
+const MV_COLORS = ["#a78bfa", "#f472b6", "#34d399"];
+const DV_COLORS = ["#fb923c", "#fbbf24"];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="recharts-custom-tooltip">
+      <p className="tooltip-label">t = {Number(label).toFixed(1)} min</p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} style={{ color: entry.color, margin: "2px 0", fontSize: "11px" }}>
+          {entry.name}: <strong>{Number(entry.value).toFixed(4)}</strong>
+        </p>
+      ))}
+    </div>
+  );
+};
+
+type TabType = "cv" | "mv" | "dv" | "bw";
+
 export default function Trends({ state }: Props) {
-  // Función auxiliar para dibujar gráfica simple
-  const renderSimpleChart = (
-    title: string,
-    data: number[],
-    min: number = -0.5,
-    max: number = 0.5,
-    labels?: string[]
-  ) => {
-    if (data.length === 0) return null;
+  const [activeTab, setActiveTab] = useState<TabType>("cv");
 
-    const width = 300;
-    const height = 150;
-    const padding = 30;
-    const plotWidth = width - 2 * padding;
-    const plotHeight = height - 2 * padding;
+  const { history, u_setpoint, bandwidth } = state;
 
-    // Escala
-    const yScale = plotHeight / (max - min);
-    const xScale = plotWidth / (data.length - 1 || 1);
+  // Construir datos para Recharts
+  const chartData = history
+    ? history.t.map((t, idx) => ({
+        t,
+        y1: history.y[idx]?.[0] ?? 0,
+        y2: history.y[idx]?.[1] ?? 0,
+        y3: history.y[idx]?.[2] ?? 0,
+        y4: history.y[idx]?.[3] ?? 0,
+        y5: history.y[idx]?.[4] ?? 0,
+        y6: history.y[idx]?.[5] ?? 0,
+        y7: history.y[idx]?.[6] ?? 0,
+        u1: history.u[idx]?.[0] ?? 0,
+        u2: history.u[idx]?.[1] ?? 0,
+        u3: history.u[idx]?.[2] ?? 0,
+        d1: history.d[idx]?.[0] ?? 0,
+        d2: history.d[idx]?.[1] ?? 0,
+      }))
+    : [];
 
-    // Puntos
-    let points = "";
-    data.forEach((value, idx) => {
-      const x = padding + idx * xScale;
-      const y = padding + (max - value) * yScale;
-      points += `${x},${y} `;
-    });
+  const axisStyle = { fill: "#6b7280", fontSize: 10, fontFamily: "monospace" };
+  const gridStyle = { stroke: "#1f2937", strokeDasharray: "3 3" };
 
-    const lastValue = data[data.length - 1];
-
-    return (
-      <div key={title} className="chart-container">
-        <h4>{title}</h4>
-        <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg">
-          {/* Grid */}
-          <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#ccc" strokeWidth="1" />
-          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#ccc" strokeWidth="1" />
-
-          {/* Línea de datos */}
-          <polyline points={points} fill="none" stroke="#0066cc" strokeWidth="2" />
-
-          {/* Puntos finales */}
-          {data.length > 0 && (
-            <circle cx={width - padding} cy={padding + (max - lastValue) * yScale} r="4" fill="#ff6600" />
-          )}
-
-          {/* Etiquetas */}
-          <text x={width / 2} y="15" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#333">
-            {lastValue.toFixed(3)}
-          </text>
-
-          {/* Límites */}
-          <text x={padding - 25} y={padding + 5} fontSize="9" fill="#999">
-            {max.toFixed(2)}
-          </text>
-          <text x={padding - 25} y={height - padding + 5} fontSize="9" fill="#999">
-            {min.toFixed(2)}
-          </text>
-        </svg>
-      </div>
-    );
+  const commonProps = {
+    data: chartData,
+    margin: { top: 5, right: 20, left: -10, bottom: 5 },
   };
 
+  const tabs: { key: TabType; label: string; count?: number }[] = [
+    { key: "cv", label: "CVs — Salidas Controladas" },
+    { key: "mv", label: "MVs — Entradas Manipuladas" },
+    { key: "dv", label: "DVs — Perturbaciones" },
+    { key: "bw", label: "Ancho de Banda" },
+  ];
+
   return (
-    <div className="trends-container">
-      <div className="trends-grid">
-        {/* CVs */}
-        <div className="trends-section">
-          <h3>Salidas Controladas (CVs)</h3>
-          <div className="charts-row">
-            {renderSimpleChart("y1: Punto Final Sup", state.history?.y.map((y) => y[0]) || [], -0.5, 0.5)}
-            {renderSimpleChart("y2: Punto Final Lat", state.history?.y.map((y) => y[1]) || [], -0.5, 0.5)}
-            {renderSimpleChart("y3: Temp Superior", state.history?.y.map((y) => y[2]) || [], -0.5, 0.5)}
-          </div>
-        </div>
-
-        {/* MVs */}
-        <div className="trends-section">
-          <h3>Entradas Manipuladas (MVs)</h3>
-          <div className="charts-row">
-            {renderSimpleChart("u1: Ext. Superior", state.history?.u.map((u) => u[0]) || [], -0.5, 0.5)}
-            {renderSimpleChart("u2: Ext. Lateral", state.history?.u.map((u) => u[1]) || [], -0.5, 0.5)}
-            {renderSimpleChart("u3: Dem. Refl. Fondo", state.history?.u.map((u) => u[2]) || [], -0.5, 0.5)}
-          </div>
-        </div>
-
-        {/* DVs */}
-        <div className="trends-section">
-          <h3>Perturbaciones (DVs)</h3>
-          <div className="charts-row">
-            {renderSimpleChart("d1: Dem. Refl. Inter", state.history?.d.map((d) => d[0]) || [], -0.5, 0.5)}
-            {renderSimpleChart("d2: Dem. Refl. Super", state.history?.d.map((d) => d[1]) || [], -0.5, 0.5)}
-          </div>
-        </div>
+    <div className="trends-modern">
+      {/* Tabs */}
+      <div className="trends-tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`trends-tab ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Información de Ancho de Banda */}
-      {state.bandwidth && (
-        <div className="bandwidth-info">
-          <h4>Análisis Ancho de Banda (OBJ-4)</h4>
-          <div className="bandwidth-values">
-            <span>BW_OL: {state.bandwidth.bw_ol.toFixed(4)}</span>
-            <span>BW_CL: {state.bandwidth.bw_cl.toFixed(4)}</span>
-            <span>Ratio: {state.bandwidth.ratio.toFixed(3)}</span>
-            <span className={state.bandwidth.compliant ? "compliant" : "non-compliant"}>
-              {state.bandwidth.compliant ? "✓ Cumple" : "✗ No cumple"} [{state.bandwidth.ratio_min}, {state.bandwidth.ratio_max}]
-            </span>
+      <div className="trends-content">
+        {/* ── CVs ── */}
+        {activeTab === "cv" && (
+          <div className="trend-chart-group">
+            <div className="trend-chart-block">
+              <p className="trend-chart-title">Puntos Finales — AT-101 (y1) y AT-201 (y2)</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart {...commonProps}>
+                  <CartesianGrid {...gridStyle} />
+                  <XAxis dataKey="t" tick={axisStyle} label={{ value: "t [min]", position: "insideBottomRight", fill: "#6b7280", fontSize: 10 }} />
+                  <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
+                  <ReferenceLine y={u_setpoint[0]} stroke="#ffaa00" strokeDasharray="4 3" label={{ value: "SP y1", fill: "#ffaa00", fontSize: 9 }} />
+                  <ReferenceLine y={u_setpoint[1]} stroke="#fb923c" strokeDasharray="4 3" label={{ value: "SP y2", fill: "#fb923c", fontSize: 9 }} />
+                  <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
+                  <Line type="monotone" dataKey="y1" name="y1: PF Sup" stroke={CV_COLORS[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="y2" name="y2: PF Lat" stroke={CV_COLORS[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="trend-chart-block">
+              <p className="trend-chart-title">Temperaturas — TT-301 (y3), TT-401 (y4), TT-501 (y5)</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart {...commonProps}>
+                  <CartesianGrid {...gridStyle} />
+                  <XAxis dataKey="t" tick={axisStyle} />
+                  <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
+                  <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
+                  <Line type="monotone" dataKey="y3" name="y3: T.Sup" stroke={CV_COLORS[2]} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="y4" name="y4: T.Refl.Sup" stroke={CV_COLORS[3]} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="y5" name="y5: T.Ext.Lat" stroke={CV_COLORS[4]} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="trend-chart-block">
+              <p className="trend-chart-title">Temperaturas — TT-601 (y6), TT-701 (y7)</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart {...commonProps}>
+                  <CartesianGrid {...gridStyle} />
+                  <XAxis dataKey="t" tick={axisStyle} />
+                  <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
+                  <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
+                  <Line type="monotone" dataKey="y6" name="y6: T.Refl.Int" stroke={CV_COLORS[5]} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="y7" name="y7: T.Refl.Fondo" stroke={CV_COLORS[6]} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ── MVs ── */}
+        {activeTab === "mv" && (
+          <div className="trend-chart-group">
+            <div className="trend-chart-block">
+              <p className="trend-chart-title">Entradas Manipuladas — FCV-101 (u1), FCV-201 (u2), FCV-301 (u3)</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart {...commonProps}>
+                  <CartesianGrid {...gridStyle} />
+                  <XAxis dataKey="t" tick={axisStyle} label={{ value: "t [min]", position: "insideBottomRight", fill: "#6b7280", fontSize: 10 }} />
+                  <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
+                  <ReferenceLine y={0.5} stroke="#ff4444" strokeDasharray="2 3" label={{ value: "MAX", fill: "#ff4444", fontSize: 8 }} />
+                  <ReferenceLine y={-0.5} stroke="#ff4444" strokeDasharray="2 3" label={{ value: "MIN", fill: "#ff4444", fontSize: 8 }} />
+                  <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
+                  <Line type="stepAfter" dataKey="u1" name="u1: Ext.Sup" stroke={MV_COLORS[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                  <Line type="stepAfter" dataKey="u2" name="u2: Ext.Lat" stroke={MV_COLORS[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                  <Line type="stepAfter" dataKey="u3" name="u3: Dem.Refl.Fondo" stroke={MV_COLORS[2]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mv-current-values">
+              <h4 className="mv-title">Valores Actuales MVs</h4>
+              <div className="mv-grid">
+                {[
+                  { tag: "FCV-101", name: "u1: Extracción Superior", val: state.u[0], color: MV_COLORS[0] },
+                  { tag: "FCV-201", name: "u2: Extracción Lateral", val: state.u[1], color: MV_COLORS[1] },
+                  { tag: "FCV-301", name: "u3: Dem. Reflujo Fondo", val: state.u[2], color: MV_COLORS[2] },
+                ].map((mv) => (
+                  <div key={mv.tag} className="mv-item" style={{ borderLeftColor: mv.color }}>
+                    <span className="mv-tag" style={{ color: mv.color }}>{mv.tag}</span>
+                    <span className="mv-name">{mv.name}</span>
+                    <span className="mv-val" style={{ color: mv.color }}>{mv.val.toFixed(4)}</span>
+                    <div className="mv-bar-track">
+                      <div className="mv-bar-fill" style={{
+                        width: `${Math.max(0, Math.min(100, ((mv.val + 0.5) / 1.0) * 100))}%`,
+                        background: mv.color,
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DVs ── */}
+        {activeTab === "dv" && (
+          <div className="trend-chart-group">
+            <div className="trend-chart-block">
+              <p className="trend-chart-title">Perturbaciones Medidas — FCV-D1 (d1), FCV-D2 (d2)</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart {...commonProps}>
+                  <CartesianGrid {...gridStyle} />
+                  <XAxis dataKey="t" tick={axisStyle} label={{ value: "t [min]", position: "insideBottomRight", fill: "#6b7280", fontSize: 10 }} />
+                  <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
+                  <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
+                  <Line type="stepAfter" dataKey="d1" name="d1: Dem. Refl. Int" stroke={DV_COLORS[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                  <Line type="stepAfter" dataKey="d2" name="d2: Dem. Refl. Sup" stroke={DV_COLORS[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="dv-info-grid">
+              {[
+                { tag: "FCV-D1", name: "d1: Demanda Reflujo Intermedio", val: state.d[0], color: DV_COLORS[0] },
+                { tag: "FCV-D2", name: "d2: Demanda Reflujo Superior", val: state.d[1], color: DV_COLORS[1] },
+              ].map((dv) => (
+                <div key={dv.tag} className="dv-card" style={{ borderColor: dv.color }}>
+                  <span className="dv-tag" style={{ color: dv.color }}>{dv.tag}</span>
+                  <div className="dv-name">{dv.name}</div>
+                  <div className="dv-val" style={{ color: dv.color }}>{dv.val.toFixed(4)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Ancho de Banda ── */}
+        {activeTab === "bw" && (
+          <div className="bw-panel">
+            <h3 className="bw-title">Análisis de Ancho de Banda — OBJ-4</h3>
+            <p className="bw-subtitle">
+              Criterio: BW_CL / BW_OL ∈ [ratio_min, ratio_max]
+            </p>
+
+            {bandwidth ? (
+              <>
+                <div className="bw-cards">
+                  <div className="bw-card">
+                    <div className="bw-card-label">BW Lazo Abierto</div>
+                    <div className="bw-card-value" style={{ color: "#00d4ff" }}>
+                      {bandwidth.bw_ol.toFixed(4)}
+                    </div>
+                    <div className="bw-card-unit">rad/min</div>
+                  </div>
+                  <div className="bw-card">
+                    <div className="bw-card-label">BW Lazo Cerrado</div>
+                    <div className="bw-card-value" style={{ color: "#a78bfa" }}>
+                      {bandwidth.bw_cl.toFixed(4)}
+                    </div>
+                    <div className="bw-card-unit">rad/min</div>
+                  </div>
+                  <div className={`bw-card ${bandwidth.compliant ? "bw-ok" : "bw-fail"}`}>
+                    <div className="bw-card-label">Ratio CL/OL</div>
+                    <div className="bw-card-value">
+                      {bandwidth.ratio.toFixed(3)}
+                    </div>
+                    <div className="bw-card-unit">
+                      [{bandwidth.ratio_min.toFixed(2)}, {bandwidth.ratio_max.toFixed(2)}]
+                    </div>
+                  </div>
+                  <div className={`bw-card ${bandwidth.compliant ? "bw-ok" : "bw-fail"}`}>
+                    <div className="bw-card-label">Estado</div>
+                    <div className="bw-card-value bw-status-icon">
+                      {bandwidth.compliant ? "✓" : "✗"}
+                    </div>
+                    <div className="bw-card-unit">
+                      {bandwidth.compliant ? "CUMPLE" : "NO CUMPLE"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Barra de ratio */}
+                <div className="bw-ratio-bar-container">
+                  <div className="bw-ratio-label">Ratio: {bandwidth.ratio.toFixed(3)}</div>
+                  <div className="bw-ratio-track">
+                    {/* Zona válida */}
+                    <div className="bw-ratio-valid-zone" style={{
+                      left: `${bandwidth.ratio_min * 20}%`,
+                      width: `${(bandwidth.ratio_max - bandwidth.ratio_min) * 20}%`,
+                    }} />
+                    {/* Indicador actual */}
+                    <div className="bw-ratio-indicator" style={{
+                      left: `${Math.min(95, bandwidth.ratio * 20)}%`,
+                      background: bandwidth.compliant ? "#00ff88" : "#ff4444",
+                    }} />
+                  </div>
+                  <div className="bw-ratio-scale">
+                    {[0, 1, 2, 3, 4, 5].map(v => (
+                      <span key={v} style={{ left: `${v * 20}%` }}>{v}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bw-desc">
+                  <p>
+                    <strong>Horizonte MPC:</strong> Np = 15 pasos, Nc = 5 pasos, Δt = 1 min
+                  </p>
+                  <p>
+                    <strong>Criterio (OBJ-4):</strong> El ancho de banda en lazo cerrado debe estar
+                    entre {bandwidth.ratio_min} y {bandwidth.ratio_max} veces el ancho de banda en lazo abierto.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="bw-no-data">
+                Inicia la simulación para calcular el ancho de banda.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

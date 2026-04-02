@@ -5,185 +5,131 @@ interface Props {
   engineStatus: EngineStatus;
 }
 
-/**
- * Panel de Motor de Cálculo Dual.
- *
- * Funcionalidades:
- *   - Radio buttons para seleccionar motor (Python/Octave)
- *   - Badges de color: verde = OK, amarillo = fallback, rojo = no disponible
- *   - Latencia de última llamada
- *   - Botón de benchmark (comparar tiempos Python vs Octave)
- *   - Logs de llamadas a Octave
- */
 export default function EnginePanel({ engineStatus }: Props) {
-  const [selectedEngine, setSelectedEngine] = useState<"python" | "octave">(
-    engineStatus.active
-  );
-  const [benchmarkResult, setBenchmarkResult] = useState<any>(null);
-  const [showBenchmark, setShowBenchmark] = useState(false);
+  const [selected, setSelected] = useState<"python" | "octave">(engineStatus.active);
+  const [benchmark, setBenchmark] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleEngineSwitch = async (engine: "python" | "octave") => {
+  const handleSwitch = async (engine: "python" | "octave") => {
     try {
-      const response = await fetch("/api/engine/switch", {
+      const res = await fetch("/api/engine/switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ engine }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setSelectedEngine(engine);
-          console.log(`Motor cambiado a ${engine}`);
-        } else {
-          alert(data.message);
-        }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) setSelected(engine);
+        else alert(data.message);
       }
-    } catch (e) {
-      console.error("Error switching engine:", e);
-    }
+    } catch { /* silent */ }
   };
 
   const handleBenchmark = async () => {
+    setLoading(true);
     try {
-      setShowBenchmark(true);
-      const response = await fetch("/api/engine/benchmark");
-      if (response.ok) {
-        const data = await response.json();
-        setBenchmarkResult(data);
-      }
-    } catch (e) {
-      console.error("Error running benchmark:", e);
+      const res = await fetch("/api/engine/benchmark");
+      if (res.ok) setBenchmark(await res.json());
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getEngineColor = (engine: "python" | "octave") => {
-    if (engineStatus.active === engine) {
-      return engineStatus.active_is_fallback ? "#ffcc00" : "#00cc00";
-    } else if (engine === "octave" && !engineStatus.octave_available) {
-      return "#cccccc";
-    }
-    return "#666666";
-  };
-
-  const getEngineStatus = (engine: "python" | "octave") => {
-    if (engineStatus.active === engine) {
-      return engineStatus.active_is_fallback ? "Fallback" : "Activo";
-    } else if (engine === "octave" && !engineStatus.octave_available) {
-      return "No instalado";
-    }
-    return "Disponible";
+  const engineLabel = (e: "python" | "octave") => {
+    const isActive = engineStatus.active === e;
+    const isFallback = isActive && engineStatus.active_is_fallback;
+    if (!isActive) return { color: "#6b7280", text: "Inactivo" };
+    if (isFallback) return { color: "#ffaa00", text: "Activo (fallback)" };
+    return { color: "#00ff88", text: "Activo" };
   };
 
   return (
-    <div className="engine-panel">
-      {/* Selector de motor */}
-      <div className="engine-selector">
-        <div className="engine-option">
-          <input
-            type="radio"
-            id="python-radio"
-            name="engine"
-            value="python"
-            checked={selectedEngine === "python"}
-            onChange={() => handleEngineSwitch("python")}
-          />
-          <label htmlFor="python-radio">
-            <span
-              className="engine-badge"
-              style={{ backgroundColor: getEngineColor("python") }}
-            />
-            Python (numpy/scipy/cvxpy)
-          </label>
-          <span className="engine-status">{getEngineStatus("python")}</span>
-        </div>
+    <div className="engine-panel-modern">
+      {/* Selector */}
+      <div className="engine-options">
+        {(["python", "octave"] as const).map((eng) => {
+          const { color, text } = engineLabel(eng);
+          const isAvailable = eng === "python" ? engineStatus.python_available : engineStatus.octave_available;
+          const isSelected = selected === eng;
 
-        <div className="engine-option">
-          <input
-            type="radio"
-            id="octave-radio"
-            name="engine"
-            value="octave"
-            checked={selectedEngine === "octave"}
-            onChange={() => handleEngineSwitch("octave")}
-            disabled={!engineStatus.octave_available}
-          />
-          <label htmlFor="octave-radio">
-            <span
-              className="engine-badge"
-              style={{ backgroundColor: getEngineColor("octave") }}
-            />
-            GNU Octave
-          </label>
-          <span className="engine-status">{getEngineStatus("octave")}</span>
-        </div>
+          return (
+            <button
+              key={eng}
+              className={`engine-option-btn ${isSelected ? "selected" : ""} ${!isAvailable ? "unavailable" : ""}`}
+              onClick={() => isAvailable && handleSwitch(eng)}
+              disabled={!isAvailable}
+              style={{
+                borderColor: isSelected ? color : "#374151",
+                boxShadow: isSelected ? `0 0 10px ${color}44` : "none",
+              }}
+            >
+              <div className="engine-opt-header">
+                <div className="engine-dot" style={{ background: color }} />
+                <span className="engine-opt-name">
+                  {eng === "python" ? "Python" : "GNU Octave"}
+                </span>
+                <span className="engine-opt-status" style={{ color }}>
+                  {text}
+                </span>
+              </div>
+              <div className="engine-opt-detail">
+                {eng === "python"
+                  ? "numpy · scipy · cvxpy"
+                  : isAvailable
+                  ? `v${engineStatus.octave_version ?? "?"} · timeout: ${engineStatus.octave_timeout_s}s`
+                  : "No instalado"}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Información de Octave */}
-      {engineStatus.octave_available && (
-        <div className="octave-info">
-          <p>
-            <strong>Versión:</strong> {engineStatus.octave_version || "desconocida"}
-          </p>
-          <p>
-            <strong>Binario:</strong> {engineStatus.octave_bin || "octave-cli"}
-          </p>
-          <p>
-            <strong>Timeout:</strong> {engineStatus.octave_timeout_s}s
-          </p>
-        </div>
-      )}
-
       {!engineStatus.octave_available && (
-        <div className="octave-warning">
-          ⚠️ GNU Octave no está instalado. Instalar con:
-          <ul>
-            <li>
-              <code>Linux/WSL: sudo apt install octave</code>
-            </li>
-            <li>
-              <code>macOS: brew install octave</code>
-            </li>
-            <li>
-              <code>Windows: winget install GNU.Octave</code>
-            </li>
-          </ul>
+        <div className="engine-install-hint">
+          <span style={{ color: "#ffaa00" }}>⚠</span> Octave no detectado.
+          Instalar: <code>sudo apt install octave</code>
         </div>
       )}
 
       {/* Benchmark */}
-      <div className="engine-benchmark">
-        <button onClick={handleBenchmark} className="btn-benchmark">
-          ▶ Ejecutar Benchmark
-        </button>
+      <button
+        className="engine-benchmark-btn"
+        onClick={handleBenchmark}
+        disabled={loading}
+      >
+        {loading ? "⟳ Ejecutando..." : "▶ Benchmark Python vs Octave"}
+      </button>
 
-        {showBenchmark && benchmarkResult && (
-          <div className="benchmark-results">
-            <h5>Resultados Benchmark</h5>
-            <table>
-              <thead>
-                <tr>
-                  <th>Motor</th>
-                  <th>Disponible</th>
-                  <th>Tiempo (ms)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Python</td>
-                  <td>{benchmarkResult.python.available ? "✓" : "✗"}</td>
-                  <td>{benchmarkResult.python.duration_ms?.toFixed(2) || "—"}</td>
-                </tr>
-                <tr>
-                  <td>Octave</td>
-                  <td>{benchmarkResult.octave.available ? "✓" : "✗"}</td>
-                  <td>{benchmarkResult.octave.duration_ms?.toFixed(2) || "—"}</td>
-                </tr>
-              </tbody>
-            </table>
+      {benchmark && (
+        <div className="engine-benchmark-results">
+          <div className="bench-row">
+            <span>Python</span>
+            <span className="bench-available">
+              {benchmark.python.available ? "✓" : "✗"}
+            </span>
+            <span className="bench-time" style={{ color: "#00d4ff" }}>
+              {benchmark.python.duration_ms?.toFixed(1) ?? "—"} ms
+            </span>
           </div>
-        )}
-      </div>
+          <div className="bench-row">
+            <span>Octave</span>
+            <span className="bench-available">
+              {benchmark.octave?.available ? "✓" : "✗"}
+            </span>
+            <span className="bench-time" style={{ color: "#a78bfa" }}>
+              {benchmark.octave?.duration_ms?.toFixed(1) ?? "—"} ms
+            </span>
+          </div>
+          {benchmark.python.duration_ms && benchmark.octave?.duration_ms && (
+            <div className="bench-ratio">
+              Ratio Octave/Python:{" "}
+              <strong style={{ color: "#ffaa00" }}>
+                {(benchmark.octave.duration_ms / benchmark.python.duration_ms).toFixed(2)}x
+              </strong>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
