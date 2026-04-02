@@ -24,11 +24,21 @@ RUN npm run build
 # Etapa 2: Servir con nginx
 FROM nginx:alpine
 
+# Instalar gettext para envsubst
+RUN apk add --no-cache gettext
+
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copia configuración nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copia template de nginx (no el archivo final)
+COPY nginx.conf.template /etc/nginx/conf.d/default.conf.template
+
+# Copia script de entrypoint
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Railway asigna un puerto dinámicamente
+ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
