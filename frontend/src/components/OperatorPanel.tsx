@@ -6,12 +6,72 @@ interface Props {
   state: ProcessState | null;
 }
 
+// Definición de casos de prueba con información detallada
+const TEST_CASES = [
+  {
+    num: 1,
+    name: "Caso Nominal",
+    description: "Condiciones nominales sin incertidumbre paramétrica",
+    epsilons: [0, 0, 0, 0, 0],
+    d1: 0.5,
+    d2: 0.5,
+    objective: "Validar desempeño con modelo nominal y perturbaciones positivas máximas",
+    difficulty: "Baja",
+    color: "#00ff88",
+  },
+  {
+    num: 2,
+    name: "Incertidumbre Negativa",
+    description: "Ganancias MV reducidas, perturbaciones aumentadas",
+    epsilons: [-1, -1, -1, 1, 1],
+    d1: -0.5,
+    d2: -0.5,
+    objective: "Probar robustez con subestimación de ganancias y perturbaciones negativas",
+    difficulty: "Media-Alta",
+    color: "#fbbf24",
+  },
+  {
+    num: 3,
+    name: "Asimétrico Lateral",
+    description: "u2 reducida, resto aumentadas - prueba desacoplamiento",
+    epsilons: [1, -1, 1, 1, 1],
+    d1: -0.5,
+    d2: -0.5,
+    objective: "Evaluar control descentralizado con asimetría en lazos SISO",
+    difficulty: "Alta",
+    color: "#fb923c",
+  },
+  {
+    num: 4,
+    name: "Sobreestimación Total",
+    description: "Todas las ganancias maximizadas con perturbaciones mixtas",
+    epsilons: [1, 1, 1, 1, 1],
+    d1: -0.5,
+    d2: 0.5,
+    objective: "Verificar estabilidad con máxima ganancia y perturbaciones opuestas",
+    difficulty: "Muy Alta",
+    color: "#ff4444",
+  },
+  {
+    num: 5,
+    name: "Interacción Cruzada",
+    description: "u1 reducida, u2 aumentada - máxima interacción entre lazos",
+    epsilons: [-1, 1, 0, 0, 0],
+    d1: -0.5,
+    d2: -0.5,
+    objective: "Probar rechazo de interacción cruzada entre AT-101 y AT-201",
+    difficulty: "Media",
+    color: "#a78bfa",
+  },
+];
+
 export default function OperatorPanel({ state }: Props) {
   const [y1Sp, setY1Sp] = useState(0.0);
   const [y2Sp, setY2Sp] = useState(0.0);
   const [epsilons, setEpsilons] = useState([0, 0, 0, 0, 0]);
   const [analyzerFaults, setAnalyzerFaults] = useState({ y1: false, y2: false });
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [expandedCase, setExpandedCase] = useState<number | null>(null);
 
   const showFeedback = (msg: string) => {
     setFeedback(msg);
@@ -214,17 +274,114 @@ export default function OperatorPanel({ state }: Props) {
         <h4 className="op-section-title">
           <span className="op-section-icon">▶</span> Escenarios de Prueba
         </h4>
-        <div className="op-case-grid">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} onClick={() => handleLoadScenario(n)} className="op-case-btn">
-              <span className="op-case-num">{n}</span>
-              <span className="op-case-label">CASO</span>
-            </button>
+        <p className="op-section-hint" style={{ marginBottom: "12px" }}>
+          5 casos de validación con diferentes condiciones de incertidumbre y perturbaciones
+        </p>
+
+        <div className="op-test-cases">
+          {TEST_CASES.map((testCase) => (
+            <div key={testCase.num} className="op-test-case">
+              {/* Header del caso */}
+              <div
+                className="op-test-case-header"
+                onClick={() => setExpandedCase(expandedCase === testCase.num ? null : testCase.num)}
+                style={{ borderLeftColor: testCase.color }}
+              >
+                <div className="op-test-case-main">
+                  <div className="op-test-case-num" style={{ backgroundColor: testCase.color }}>
+                    {testCase.num}
+                  </div>
+                  <div className="op-test-case-info">
+                    <div className="op-test-case-name">{testCase.name}</div>
+                    <div className="op-test-case-desc">{testCase.description}</div>
+                  </div>
+                </div>
+                <div className="op-test-case-actions">
+                  <button
+                    className="op-test-case-load"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLoadScenario(testCase.num);
+                    }}
+                  >
+                    Cargar
+                  </button>
+                  <span className="op-test-case-expand">
+                    {expandedCase === testCase.num ? "▼" : "▶"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Detalles expandidos */}
+              {expandedCase === testCase.num && (
+                <div className="op-test-case-details">
+                  <div className="op-test-detail-row">
+                    <span className="op-test-detail-label">Objetivo:</span>
+                    <span className="op-test-detail-value">{testCase.objective}</span>
+                  </div>
+
+                  <div className="op-test-detail-row">
+                    <span className="op-test-detail-label">Dificultad:</span>
+                    <span
+                      className="op-test-detail-badge"
+                      style={{
+                        backgroundColor: testCase.difficulty === "Baja" ? "#00ff8822" :
+                                        testCase.difficulty.includes("Media") ? "#ffaa0022" : "#ff444422",
+                        color: testCase.difficulty === "Baja" ? "#00ff88" :
+                              testCase.difficulty.includes("Media") ? "#ffaa00" : "#ff4444"
+                      }}
+                    >
+                      {testCase.difficulty}
+                    </span>
+                  </div>
+
+                  <div className="op-test-detail-group">
+                    <span className="op-test-detail-label">Vector ε:</span>
+                    <div className="op-test-epsilon-grid">
+                      {testCase.epsilons.map((eps, idx) => (
+                        <div key={idx} className="op-test-epsilon-item">
+                          <span className="op-test-eps-label">ε{idx + 1}</span>
+                          <span
+                            className="op-test-eps-value"
+                            style={{
+                              color: eps === 0 ? "#888" : eps > 0 ? "#00ff88" : "#ff4444"
+                            }}
+                          >
+                            {eps >= 0 ? "+" : ""}{eps.toFixed(1)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="op-test-detail-group">
+                    <span className="op-test-detail-label">Perturbaciones:</span>
+                    <div className="op-test-disturbance-row">
+                      <div className="op-test-dist-item">
+                        <span className="op-test-dist-label">d₁</span>
+                        <span
+                          className="op-test-dist-value"
+                          style={{ color: testCase.d1 >= 0 ? "#00ff88" : "#ff4444" }}
+                        >
+                          {testCase.d1 >= 0 ? "+" : ""}{testCase.d1.toFixed(1)}
+                        </span>
+                      </div>
+                      <div className="op-test-dist-item">
+                        <span className="op-test-dist-label">d₂</span>
+                        <span
+                          className="op-test-dist-value"
+                          style={{ color: testCase.d2 >= 0 ? "#00ff88" : "#ff4444" }}
+                        >
+                          {testCase.d2 >= 0 ? "+" : ""}{testCase.d2.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
-        <p className="op-section-hint">
-          Cada caso define vector ε y perturbaciones d₁, d₂ iniciales
-        </p>
       </div>
 
       {/* ── Fallos de Analizador ── */}
