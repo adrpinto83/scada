@@ -300,7 +300,7 @@ export default function App() {
       <footer className="scada-footer">
         <span>SCADA Fraccionadora v1.0 · Shell Control Problem · Control Descentralizado SISO</span>
         <span>Universidad de Oriente (UDO) · Postgrado Automatización e Informática Industrial · Abril 2026</span>
-        <span>Desarrollado por Ing. Rousemary Torres e Ing. Adrian Pinto</span>
+        <span>Desarrollado por Ing. Rousemery Torres e Ing. Adrian Pinto</span>
         <span>
           {isConnected
             ? <span style={{ color: "#00ff88" }}>● WebSocket activo</span>
