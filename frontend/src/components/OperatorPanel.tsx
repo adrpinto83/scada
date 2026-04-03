@@ -11,6 +11,9 @@ export default function OperatorPanel({ state }: Props) {
   const [y2Sp, setY2Sp] = useState(0.0);
   const [analyzerFaults, setAnalyzerFaults] = useState({ y1: false, y2: false });
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [testEpsilons, setTestEpsilons] = useState([0, 0, 0, 0, 0]);
+  const [testD1, setTestD1] = useState(0.5);
+  const [testD2, setTestD2] = useState(0.5);
 
   const showFeedback = (msg: string) => {
     setFeedback(msg);
@@ -150,35 +153,119 @@ export default function OperatorPanel({ state }: Props) {
         </button>
       </div>
 
-      {/* ── Caso Nominal ── */}
+      {/* ── Condición de Prueba Editable ── */}
       <div className="op-section">
         <h4 className="op-section-title">
-          <span className="op-section-icon">▶</span> Condición de Prueba
+          <span className="op-section-icon">⚙</span> Condición de Prueba
         </h4>
-        <p className="op-section-hint" style={{ marginBottom: "12px" }}>
-          Prototipo único sin incertidumbre paramétrica
+        <p className="op-section-hint" style={{ marginBottom: "10px" }}>
+          Ajusta incertidumbres (ε) y perturbaciones (d)
         </p>
 
-        <div className="op-nominal-card">
-          <div className="op-nominal-header">
-            <div className="op-nominal-badge">1</div>
-            <div className="op-nominal-info">
-              <div className="op-nominal-name">Caso Nominal</div>
-              <div className="op-nominal-desc">Condiciones nominales (ε₁...ε₅ = 0)</div>
+        <div className="op-test-editor">
+          {/* Epsilons */}
+          <div className="op-test-section">
+            <span className="op-test-section-label">Incertidumbres ε (rango [-1, +1])</span>
+            <div className="op-eps-grid">
+              {["ε₁ (u1)", "ε₂ (u2)", "ε₃ (u3)", "ε₄ (d1)", "ε₅ (d2)"].map((label, i) => (
+                <div key={i} className="op-eps-input-group">
+                  <label className="op-eps-input-label">{label}</label>
+                  <div className="op-eps-input-row">
+                    <input
+                      type="range"
+                      min="-1" max="1" step="0.05"
+                      value={testEpsilons[i]}
+                      onChange={(e) => {
+                        const newEps = [...testEpsilons];
+                        newEps[i] = parseFloat(e.target.value);
+                        setTestEpsilons(newEps);
+                      }}
+                      className="op-eps-input-range"
+                    />
+                    <input
+                      type="number"
+                      min="-1" max="1" step="0.05"
+                      value={testEpsilons[i].toFixed(2)}
+                      onChange={(e) => {
+                        const newEps = [...testEpsilons];
+                        newEps[i] = Math.max(-1, Math.min(1, parseFloat(e.target.value) || 0));
+                        setTestEpsilons(newEps);
+                      }}
+                      className="op-eps-input-number"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="op-nominal-params">
-            <div className="op-param-row">
-              <span className="op-param-label">Vector ε:</span>
-              <span className="op-param-value mono">[+0.00, +0.00, +0.00, +0.00, +0.00]</span>
-            </div>
-            <div className="op-param-row">
-              <span className="op-param-label">Perturbaciones:</span>
-              <span className="op-param-value">d₁ = +0.5,  d₂ = +0.5</span>
+
+          {/* Perturbaciones */}
+          <div className="op-test-section" style={{ marginTop: "10px" }}>
+            <span className="op-test-section-label">Perturbaciones d (rango [-1, +1])</span>
+            <div className="op-dist-input-row">
+              <div className="op-dist-input-group">
+                <label className="op-dist-input-label">d₁ (Reflujo Intermedio)</label>
+                <div className="op-dist-input-controls">
+                  <input
+                    type="range"
+                    min="-1" max="1" step="0.05"
+                    value={testD1}
+                    onChange={(e) => setTestD1(parseFloat(e.target.value))}
+                    className="op-dist-input-range"
+                  />
+                  <input
+                    type="number"
+                    min="-1" max="1" step="0.05"
+                    value={testD1.toFixed(2)}
+                    onChange={(e) => setTestD1(Math.max(-1, Math.min(1, parseFloat(e.target.value) || 0)))}
+                    className="op-dist-input-number"
+                  />
+                </div>
+              </div>
+              <div className="op-dist-input-group">
+                <label className="op-dist-input-label">d₂ (Reflujo Superior)</label>
+                <div className="op-dist-input-controls">
+                  <input
+                    type="range"
+                    min="-1" max="1" step="0.05"
+                    value={testD2}
+                    onChange={(e) => setTestD2(parseFloat(e.target.value))}
+                    className="op-dist-input-range"
+                  />
+                  <input
+                    type="number"
+                    min="-1" max="1" step="0.05"
+                    value={testD2.toFixed(2)}
+                    onChange={(e) => setTestD2(Math.max(-1, Math.min(1, parseFloat(e.target.value) || 0)))}
+                    className="op-dist-input-number"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <button onClick={handleLoadScenario} className="op-btn op-btn-primary">
-            Cargar Condición Nominal
+
+          {/* Summary */}
+          <div className="op-test-summary">
+            <div className="op-test-summary-row">
+              <span className="op-test-summary-label">ε = [</span>
+              {testEpsilons.map((e, i) => (
+                <span key={i} className="op-test-summary-val">
+                  {e >= 0 ? "+" : ""}{e.toFixed(2)}{i < 4 ? ", " : ""}
+                </span>
+              ))}
+              <span className="op-test-summary-label">]</span>
+            </div>
+            <div className="op-test-summary-row">
+              <span className="op-test-summary-label">d = [</span>
+              <span className="op-test-summary-val">{testD1 >= 0 ? "+" : ""}{testD1.toFixed(2)}</span>
+              <span className="op-test-summary-label">, </span>
+              <span className="op-test-summary-val">{testD2 >= 0 ? "+" : ""}{testD2.toFixed(2)}</span>
+              <span className="op-test-summary-label">]</span>
+            </div>
+          </div>
+
+          <button onClick={handleLoadScenario} className="op-btn op-btn-primary" style={{ marginTop: "10px" }}>
+            Cargar Condición
           </button>
         </div>
       </div>
