@@ -2455,7 +2455,7 @@ html, body {
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -2499,7 +2499,7 @@ html, body {
   padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: white;
+  background: var(--bg-surface);
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -2524,7 +2524,7 @@ html, body {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -2568,7 +2568,7 @@ html, body {
   padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: white;
+  background: var(--bg-surface);
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -2584,7 +2584,7 @@ html, body {
 /* Summary */
 .op-test-summary {
   padding: 8px;
-  background: white;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   display: flex;
