@@ -10,6 +10,7 @@ import OperatorPanel from "./components/OperatorPanel";
 import AlarmPanel from "./components/AlarmPanel";
 import EnginePanel from "./components/EnginePanel";
 import KPICard from "./components/KPICard";
+import ThemeToggle from "./components/ThemeToggle";
 
 // split = P&ID arriba + Tendencias abajo
 // pid   = Solo P&ID (pantalla completa en área principal)
@@ -102,6 +103,7 @@ export default function App() {
         </div>
 
         <div className="header-right">
+          <ThemeToggle />
           <div className={`ws-badge ${isConnected ? "connected" : "disconnected"}`}>
             <div className={`ws-dot ${isConnected ? "pulse" : ""}`} />
             {isConnected ? "ONLINE" : "OFFLINE"}
