@@ -43,16 +43,16 @@ export default function KPICard({
       : "alarm";
 
   const statusColor = {
-    good: "#00ff88",
-    warning: "#ffaa00",
-    alarm: "#ff4444",
-    normal: "#00d4ff",
+    good: "#10b981",
+    warning: "#f59e0b",
+    alarm: "#ef4444",
+    normal: "#3b82f6",
   }[status];
 
   const variantColor = {
-    cv: "#00d4ff",
-    mv: "#a78bfa",
-    dv: "#fb923c",
+    cv: "#3b82f6",
+    mv: "#6d28d9",
+    dv: "#f59e0b",
   }[variant];
 
   return (

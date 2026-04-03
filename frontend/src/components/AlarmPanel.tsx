@@ -10,7 +10,7 @@ export default function AlarmPanel({ alarms }: Props) {
   const [acked, setAcked] = useState<Set<number>>(new Set());
 
   const severityColor = (s: string) =>
-    ({ HH: "#ff2244", H: "#ff6600", L: "#ffaa00", LL: "#00cc66" }[s] ?? "#666");
+    ({ HH: "#991b1b", H: "#dc2626", L: "#f59e0b", LL: "#059669" }[s] ?? "#666");
 
   const severityLabel = (s: string) =>
     ({ HH: "CRÍTICA", H: "ALTA", L: "MEDIA", LL: "BAJA" }[s] ?? s);
@@ -144,10 +144,10 @@ export default function AlarmPanel({ alarms }: Props) {
       {alarms.length > 0 && (
         <div className="alarm-footer-stats">
           <span>Total: {alarms.length}</span>
-          <span style={{ color: "#ff2244" }}>HH: {counts.HH}</span>
-          <span style={{ color: "#ff6600" }}>H: {counts.H}</span>
-          <span style={{ color: "#ffaa00" }}>L: {counts.L}</span>
-          <span style={{ color: "#00cc66" }}>LL: {counts.LL}</span>
+          <span style={{ color: "#991b1b" }}>HH: {counts.HH}</span>
+          <span style={{ color: "#dc2626" }}>H: {counts.H}</span>
+          <span style={{ color: "#f59e0b" }}>L: {counts.L}</span>
+          <span style={{ color: "#059669" }}>LL: {counts.LL}</span>
         </div>
       )}
     </div>

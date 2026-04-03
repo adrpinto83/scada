@@ -57,12 +57,12 @@ export default function GaugeDisplay({
   const error = setpoint !== undefined ? Math.abs(value - setpoint) : 0;
   const gaugeColor =
     setpoint === undefined
-      ? "#00d4ff"
+      ? "#3b82f6"
       : error <= 0.005
-      ? "#00ff88"
+      ? "#10b981"
       : error <= 0.05
-      ? "#ffaa00"
-      : "#ff4444";
+      ? "#f59e0b"
+      : "#ef4444";
 
   // Aguja
   const needleAngle = valueAngle;
@@ -108,7 +108,7 @@ export default function GaugeDisplay({
         <path
           d={describeArc(startAngle, startAngle + totalAngle * 0.15, r)}
           fill="none"
-          stroke="#ff444422"
+          stroke="#ef444422"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
@@ -117,7 +117,7 @@ export default function GaugeDisplay({
         <path
           d={describeArc(startAngle + totalAngle * 0.15, startAngle + totalAngle * 0.85, r)}
           fill="none"
-          stroke="#00ff8811"
+          stroke="#10b98111"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
@@ -126,7 +126,7 @@ export default function GaugeDisplay({
         <path
           d={describeArc(startAngle + totalAngle * 0.85, endAngle, r)}
           fill="none"
-          stroke="#ff444422"
+          stroke="#ef444422"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
@@ -168,7 +168,7 @@ export default function GaugeDisplay({
             y1={spMarkerInner.y}
             x2={spMarker.x}
             y2={spMarker.y}
-            stroke="#ffaa00"
+            stroke="#f59e0b"
             strokeWidth="2"
             strokeDasharray="3,2"
           />

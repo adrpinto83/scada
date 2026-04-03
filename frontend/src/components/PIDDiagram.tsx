@@ -14,22 +14,22 @@ export default function PIDDiagram({ state }: Props) {
 
   const tempColor = (val: number) => {
     const abs = Math.abs(val);
-    if (abs < 0.05) return "#00ff88";
-    if (abs < 0.15) return "#ffaa00";
-    return "#ff4444";
+    if (abs < 0.05) return "#10b981";
+    if (abs < 0.15) return "#f59e0b";
+    return "#ef4444";
   };
 
   const flowColor = (val: number) => {
     const abs = Math.abs(val);
-    if (abs < 0.1) return "#00d4ff";
-    if (abs < 0.3) return "#a78bfa";
-    return "#fb923c";
+    if (abs < 0.1) return "#3b82f6";
+    if (abs < 0.3) return "#6d28d9";
+    return "#f59e0b";
   };
 
   const valveOpening = (val: number) =>
     Math.max(10, Math.min(90, Math.abs(val) * 100));
 
-  const analyzerColor = (fault: boolean) => (fault ? "#ff4444" : "#00ff88");
+  const analyzerColor = (fault: boolean) => (fault ? "#ef4444" : "#10b981");
 
   /** Dibuja un gauge mini SVG incrustado (arco semicircular) */
   const MiniGauge = ({
@@ -79,7 +79,7 @@ export default function PIDDiagram({ state }: Props) {
             <line
               x1={cx + (r - 8) * Math.cos(spAngle)} y1={cy + (r - 8) * Math.sin(spAngle)}
               x2={cx + (r + 1) * Math.cos(spAngle)} y2={cy + (r + 1) * Math.sin(spAngle)}
-              stroke="#ffaa00" strokeWidth="2" strokeLinecap="round"
+              stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"
             />
           );
         })()}
@@ -127,16 +127,16 @@ export default function PIDDiagram({ state }: Props) {
             <stop offset="100%" stopColor="#0f1e35" />
           </linearGradient>
           <linearGradient id="zSupGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stopColor="#00d4ff33" />
-            <stop offset="100%" stopColor="#00d4ff08" />
+            <stop offset="0%"   stopColor="#3b82f633" />
+            <stop offset="100%" stopColor="#3b82f608" />
           </linearGradient>
           <linearGradient id="zLatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stopColor="#00ff8828" />
-            <stop offset="100%" stopColor="#00ff8808" />
+            <stop offset="0%"   stopColor="#10b98128" />
+            <stop offset="100%" stopColor="#10b98108" />
           </linearGradient>
           <linearGradient id="zFndGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%"   stopColor="#fb923c22" />
-            <stop offset="100%" stopColor="#fb923c44" />
+            <stop offset="0%"   stopColor="#f59e0b22" />
+            <stop offset="100%" stopColor="#f59e0b44" />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
@@ -146,13 +146,13 @@ export default function PIDDiagram({ state }: Props) {
             </feMerge>
           </filter>
           <marker id="arrowCyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L6,3 z" fill="#00d4ff" />
+            <path d="M0,0 L0,6 L6,3 z" fill="#3b82f6" />
           </marker>
           <marker id="arrowOrange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L6,3 z" fill="#fb923c" />
+            <path d="M0,0 L0,6 L6,3 z" fill="#f59e0b" />
           </marker>
           <marker id="arrowPurple" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L6,3 z" fill="#a78bfa" />
+            <path d="M0,0 L0,6 L6,3 z" fill="#6d28d9" />
           </marker>
           <style>{`
             .flow-cyan   { stroke-dasharray:10 6; animation:flowDash    1.8s linear infinite; }
@@ -183,7 +183,7 @@ export default function PIDDiagram({ state }: Props) {
         {/* ── COLUMNA PRINCIPAL ─────────────────────────────────── */}
         {/* Borde glow */}
         <rect x={col.x - 6} y={col.y - 6} width={col.w + 12} height={col.h + 12}
-          fill="none" stroke="#00d4ff18" strokeWidth="4" rx="10" />
+          fill="none" stroke="#3b82f618" strokeWidth="4" rx="10" />
         {/* Cuerpo */}
         <rect x={col.x} y={col.y} width={col.w} height={col.h}
           fill="url(#colGrad)" stroke="#334155" strokeWidth="2.5" rx="6" />
@@ -195,11 +195,11 @@ export default function PIDDiagram({ state }: Props) {
 
         {/* Etiquetas de zona */}
         <text x={col.x + col.w/2} y={col.y + 24}  textAnchor="middle"
-          fontSize="9" fill="#00d4ff55" fontFamily="monospace" letterSpacing="1">ZONA SUPERIOR</text>
+          fontSize="9" fill="#3b82f655" fontFamily="monospace" letterSpacing="1">ZONA SUPERIOR</text>
         <text x={col.x + col.w/2} y={col.y + 240} textAnchor="middle"
-          fontSize="9" fill="#00ff8855" fontFamily="monospace" letterSpacing="1">ZONA LATERAL</text>
+          fontSize="9" fill="#10b98155" fontFamily="monospace" letterSpacing="1">ZONA LATERAL</text>
         <text x={col.x + col.w/2} y={col.y + 428} textAnchor="middle"
-          fontSize="9" fill="#fb923c55" fontFamily="monospace" letterSpacing="1">ZONA FONDO</text>
+          fontSize="9" fill="#f59e0b55" fontFamily="monospace" letterSpacing="1">ZONA FONDO</text>
 
         {/* Platos teóricos */}
         {[160, 210, 270, 330, 385].map((yOff, i) => (
@@ -213,14 +213,14 @@ export default function PIDDiagram({ state }: Props) {
 
         {/* Sello líquido fondo */}
         <ellipse cx={col.x + col.w/2} cy={col.y + col.h - 20} rx={col.w/2 - 14} ry="14"
-          fill="#fb923c18" stroke="#fb923c30" strokeWidth="1" />
+          fill="#f59e0b18" stroke="#f59e0b30" strokeWidth="1" />
         <text x={col.x + col.w/2} y={col.y + col.h - 8} textAnchor="middle"
           fontSize="7" fill="#4b5563" fontFamily="monospace">5 PLATOS TEÓRICOS</text>
 
         {/* ── VAPOR DE CABEZA ───────────────────────────────────── */}
-        <path d={vaporPath} fill="none" stroke="#00d4ff" strokeWidth="2.5"
+        <path d={vaporPath} fill="none" stroke="#3b82f6" strokeWidth="2.5"
           className="flow-cyan" markerEnd="url(#arrowCyan)" />
-        <rect x="802" y="46" width="70" height="28" rx="3" fill="#0f172a" stroke="#00d4ff33" strokeWidth="1" />
+        <rect x="802" y="46" width="70" height="28" rx="3" fill="#0f172a" stroke="#3b82f633" strokeWidth="1" />
         <text x="837" y="57"  textAnchor="middle" fontSize="8" fill="#6b7280" fontFamily="monospace">VAPOR</text>
         <text x="837" y="68"  textAnchor="middle" fontSize="8" fill="#6b7280" fontFamily="monospace">CABEZA</text>
 
@@ -239,7 +239,7 @@ export default function PIDDiagram({ state }: Props) {
         </g>
         <rect x="30" y="98" width="72" height="28" rx="3" fill="#1f2937" stroke="#374151" strokeWidth="1" />
         <text x="66" y="109" textAnchor="middle" fontSize="7" fill="#9ca3af" fontFamily="monospace">d2: Refl.Sup</text>
-        <text x="66" y="120" textAnchor="middle" fontSize="10" fill="#00d4ff" fontFamily="monospace" fontWeight="bold">
+        <text x="66" y="120" textAnchor="middle" fontSize="10" fill="#3b82f6" fontFamily="monospace" fontWeight="bold">
           {d[1].toFixed(3)}
         </text>
         <circle cx={col.x - 14} cy={160} r="5" fill={tempColor(y[3])} filter="url(#glow)" />
@@ -259,13 +259,13 @@ export default function PIDDiagram({ state }: Props) {
         </g>
         <rect x="640" y="88" width="68" height="28" rx="3" fill="#1f2937" stroke="#374151" strokeWidth="1" />
         <text x="674" y="99"  textAnchor="middle" fontSize="7" fill="#9ca3af" fontFamily="monospace">u1: Ext.Sup</text>
-        <text x="674" y="110" textAnchor="middle" fontSize="10" fill="#a78bfa" fontFamily="monospace" fontWeight="bold">
+        <text x="674" y="110" textAnchor="middle" fontSize="10" fill="#6d28d9" fontFamily="monospace" fontWeight="bold">
           {u[0].toFixed(3)}
         </text>
 
         {/* Analizador AT-101 */}
         <rect x="640" y="150" width="68" height="32" rx="4"
-          fill={analyzer_faults.y1 ? "#ff444415" : "#00ff8815"}
+          fill={analyzer_faults.y1 ? "#ef444415" : "#10b98115"}
           stroke={analyzerColor(analyzer_faults.y1)} strokeWidth="1.5" />
         <text x="674" y="162" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">AT-101</text>
         <text x="674" y="175" textAnchor="middle" fontSize="9"
@@ -282,7 +282,7 @@ export default function PIDDiagram({ state }: Props) {
         </g>
         <rect x="30" y="394" width="72" height="28" rx="3" fill="#1f2937" stroke="#374151" strokeWidth="1" />
         <text x="66" y="405" textAnchor="middle" fontSize="7" fill="#9ca3af" fontFamily="monospace">d1: Refl.Int</text>
-        <text x="66" y="416" textAnchor="middle" fontSize="10" fill="#00d4ff" fontFamily="monospace" fontWeight="bold">
+        <text x="66" y="416" textAnchor="middle" fontSize="10" fill="#3b82f6" fontFamily="monospace" fontWeight="bold">
           {d[0].toFixed(3)}
         </text>
         <circle cx={col.x - 14} cy={310} r="5" fill={tempColor(y[5])} filter="url(#glow)" />
@@ -304,13 +304,13 @@ export default function PIDDiagram({ state }: Props) {
         </g>
         <rect x="624" y="284" width="68" height="28" rx="3" fill="#1f2937" stroke="#374151" strokeWidth="1" />
         <text x="658" y="295" textAnchor="middle" fontSize="7" fill="#9ca3af" fontFamily="monospace">u2: Ext.Lat</text>
-        <text x="658" y="306" textAnchor="middle" fontSize="10" fill="#a78bfa" fontFamily="monospace" fontWeight="bold">
+        <text x="658" y="306" textAnchor="middle" fontSize="10" fill="#6d28d9" fontFamily="monospace" fontWeight="bold">
           {u[1].toFixed(3)}
         </text>
 
         {/* Analizador AT-201 */}
         <rect x="624" y="322" width="68" height="32" rx="4"
-          fill={analyzer_faults.y2 ? "#ff444415" : "#00ff8815"}
+          fill={analyzer_faults.y2 ? "#ef444415" : "#10b98115"}
           stroke={analyzerColor(analyzer_faults.y2)} strokeWidth="1.5" />
         <text x="658" y="334" textAnchor="middle" fontSize="8" fill="#9ca3af" fontFamily="monospace">AT-201</text>
         <text x="658" y="347" textAnchor="middle" fontSize="9"
@@ -324,10 +324,10 @@ export default function PIDDiagram({ state }: Props) {
         </text>
 
         {/* ── REFLUJO FONDO ─────────────────────────────────────── */}
-        <path d={reflFondoPath} fill="none" stroke="#fb923c" strokeWidth="2.5"
+        <path d={reflFondoPath} fill="none" stroke="#f59e0b" strokeWidth="2.5"
           className="flow-orange" />
-        <ellipse cx="80" cy="582" rx="30" ry="20" fill="#1f2937" stroke="#fb923c" strokeWidth="2" />
-        <text x="80" y="578" textAnchor="middle" fontSize="7"  fill="#fb923c88" fontFamily="monospace">REBOILER</text>
+        <ellipse cx="80" cy="582" rx="30" ry="20" fill="#1f2937" stroke="#f59e0b" strokeWidth="2" />
+        <text x="80" y="578" textAnchor="middle" fontSize="7"  fill="#f59e0b88" fontFamily="monospace">REBOILER</text>
         <text x="80" y="589" textAnchor="middle" fontSize="6"  fill="#4b5563"   fontFamily="monospace">E-101</text>
 
         {/* ── DEMANDA REFLUJO FONDO (u3) ───────────────────────── */}
@@ -344,7 +344,7 @@ export default function PIDDiagram({ state }: Props) {
         </g>
         <rect x="640" y="542" width="76" height="28" rx="3" fill="#1f2937" stroke="#374151" strokeWidth="1" />
         <text x="678" y="553" textAnchor="middle" fontSize="7"  fill="#9ca3af" fontFamily="monospace">u3: Dem.Refl.Fondo</text>
-        <text x="678" y="564" textAnchor="middle" fontSize="10" fill="#a78bfa" fontFamily="monospace" fontWeight="bold">
+        <text x="678" y="564" textAnchor="middle" fontSize="10" fill="#6d28d9" fontFamily="monospace" fontWeight="bold">
           {u[2].toFixed(3)}
         </text>
 
@@ -365,23 +365,23 @@ export default function PIDDiagram({ state }: Props) {
 
         {/* ── PANEL SETPOINTS MPC ───────────────────────────────── */}
         <rect x="730" y="410" width="158" height="100" rx="5"
-          fill="#0f172a" stroke="#00d4ff33" strokeWidth="1" />
-        <text x="809" y="427" textAnchor="middle" fontSize="9" fill="#00d4ff" fontFamily="monospace" letterSpacing="1">
+          fill="#0f172a" stroke="#3b82f633" strokeWidth="1" />
+        <text x="809" y="427" textAnchor="middle" fontSize="9" fill="#3b82f6" fontFamily="monospace" letterSpacing="1">
           CONTROLADOR MPC
         </text>
         <line x1="738" y1="432" x2="879" y2="432" stroke="#1e3a5f" strokeWidth="1" />
         <text x="742" y="446" fontSize="8" fill="#6b7280" fontFamily="monospace">AT-101 SP:</text>
-        <text x="878" y="446" textAnchor="end" fontSize="9" fill="#ffaa00" fontFamily="monospace" fontWeight="bold">
+        <text x="878" y="446" textAnchor="end" fontSize="9" fill="#f59e0b" fontFamily="monospace" fontWeight="bold">
           {u_setpoint[0].toFixed(4)}
         </text>
         <text x="742" y="460" fontSize="8" fill="#6b7280" fontFamily="monospace">AT-201 SP:</text>
-        <text x="878" y="460" textAnchor="end" fontSize="9" fill="#ffaa00" fontFamily="monospace" fontWeight="bold">
+        <text x="878" y="460" textAnchor="end" fontSize="9" fill="#f59e0b" fontFamily="monospace" fontWeight="bold">
           {u_setpoint[1].toFixed(4)}
         </text>
         <text x="742" y="474" fontSize="8" fill="#6b7280" fontFamily="monospace">Np / Nc:</text>
-        <text x="878" y="474" textAnchor="end" fontSize="9" fill="#00d4ff" fontFamily="monospace">15 / 5</text>
+        <text x="878" y="474" textAnchor="end" fontSize="9" fill="#3b82f6" fontFamily="monospace">15 / 5</text>
         <text x="742" y="494" fontSize="8" fill="#6b7280" fontFamily="monospace">t simulado:</text>
-        <text x="878" y="494" textAnchor="end" fontSize="11" fill="#00ff88" fontFamily="monospace" fontWeight="bold">
+        <text x="878" y="494" textAnchor="end" fontSize="11" fill="#10b981" fontFamily="monospace" fontWeight="bold">
           {state.t.toFixed(1)} min
         </text>
 
@@ -390,13 +390,13 @@ export default function PIDDiagram({ state }: Props) {
           fill="#0f172a" stroke="#37415133" strokeWidth="1" />
         <text x="809" y="539" textAnchor="middle" fontSize="9" fill="#9ca3af" fontFamily="monospace">LEYENDA</text>
         <line x1="738" y1="544" x2="879" y2="544" stroke="#1e3a5f" strokeWidth="1" />
-        <circle cx="746" cy="556" r="4" fill="#00ff88" />
+        <circle cx="746" cy="556" r="4" fill="#10b981" />
         <text x="757" y="559" fontSize="8" fill="#9ca3af" fontFamily="monospace">Normal (|Δ| ≤ 0.05)</text>
-        <circle cx="746" cy="572" r="4" fill="#ffaa00" />
+        <circle cx="746" cy="572" r="4" fill="#f59e0b" />
         <text x="757" y="575" fontSize="8" fill="#9ca3af" fontFamily="monospace">Advertencia</text>
-        <circle cx="746" cy="588" r="4" fill="#ff4444" />
+        <circle cx="746" cy="588" r="4" fill="#ef4444" />
         <text x="757" y="591" fontSize="8" fill="#9ca3af" fontFamily="monospace">Alarma</text>
-        <line x1="742" y1="604" x2="759" y2="604" stroke="#ffaa00" strokeWidth="2" strokeDasharray="3,2" />
+        <line x1="742" y1="604" x2="759" y2="604" stroke="#f59e0b" strokeWidth="2" strokeDasharray="3,2" />
         <text x="763" y="607" fontSize="8" fill="#9ca3af" fontFamily="monospace">Setpoint MPC</text>
       </svg>
     </div>

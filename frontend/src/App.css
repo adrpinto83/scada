@@ -7,26 +7,26 @@
 
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
-  --bg-root:    #07090f;
-  --bg-panel:   #0d1117;
-  --bg-card:    #111827;
-  --bg-surface: #1f2937;
-  --bg-hover:   #243040;
-  --border:     #2d3748;
-  --border-dim: #1e2533;
+  --bg-root:    #0f172a;
+  --bg-panel:   #1e293b;
+  --bg-card:    #1e293b;
+  --bg-surface: #334155;
+  --bg-hover:   #475569;
+  --border:     #475569;
+  --border-dim: #334155;
 
-  --accent:     #00d4ff;
-  --accent-dim: rgba(0,212,255,0.15);
-  --success:    #00ff88;
-  --warning:    #ffaa00;
-  --danger:     #ff4444;
-  --critical:   #ff2244;
-  --purple:     #a78bfa;
+  --accent:     #3b82f6;
+  --accent-dim: rgba(59,130,246,0.15);
+  --success:    #10b981;
+  --warning:    #f59e0b;
+  --danger:     #ef4444;
+  --critical:   #991b1b;
+  --purple:     #6d28d9;
 
-  --text-primary:   #e2e8f0;
-  --text-secondary: #9ca3af;
-  --text-dim:       #6b7280;
-  --text-accent:    #00d4ff;
+  --text-primary:   #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-dim:       #94a3b8;
+  --text-accent:    #3b82f6;
 
   --font-mono:  'Share Tech Mono', 'Courier New', monospace;
   --font-ui:    'Exo 2', 'Segoe UI', sans-serif;
@@ -36,7 +36,7 @@
   --radius-lg:  12px;
 
   --shadow-panel: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-glow:  0 0 12px rgba(0,212,255,0.2);
+  --shadow-glow:  0 0 12px rgba(59,130,246,0.2);
   --shadow-card:  0 2px 8px rgba(0,0,0,0.3);
 }
 
@@ -62,8 +62,8 @@ html, body {
   50%      { opacity: 0.35; }
 }
 @keyframes pulse-dot {
-  0%,100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.6); }
-  50%      { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+  50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
 }
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(-6px); }
@@ -208,8 +208,8 @@ html, body {
   color: var(--success);
 }
 .sim-btn.start:not(.disabled):hover {
-  background: rgba(0,255,136,0.12);
-  box-shadow: 0 0 10px rgba(0,255,136,0.3);
+  background: rgba(16,185,129,0.12);
+  box-shadow: 0 0 10px rgba(16,185,129,0.3);
 }
 
 .sim-btn.stop {
@@ -217,8 +217,8 @@ html, body {
   color: var(--danger);
 }
 .sim-btn.stop:not(.disabled):hover {
-  background: rgba(255,68,68,0.12);
-  box-shadow: 0 0 10px rgba(255,68,68,0.3);
+  background: rgba(239,68,68,0.12);
+  box-shadow: 0 0 10px rgba(239,68,68,0.3);
 }
 
 .sim-btn.reset {
@@ -226,8 +226,8 @@ html, body {
   color: var(--warning);
 }
 .sim-btn.reset:hover {
-  background: rgba(255,170,0,0.12);
-  box-shadow: 0 0 10px rgba(255,170,0,0.3);
+  background: rgba(245,158,11,0.12);
+  box-shadow: 0 0 10px rgba(245,158,11,0.3);
 }
 
 .sim-btn.disabled {
@@ -297,15 +297,15 @@ html, body {
 }
 
 .ws-badge.connected {
-  border-color: rgba(0,255,136,0.4);
+  border-color: rgba(16,185,129,0.4);
   color: var(--success);
-  background: rgba(0,255,136,0.06);
+  background: rgba(16,185,129,0.06);
 }
 
 .ws-badge.disconnected {
-  border-color: rgba(255,68,68,0.4);
+  border-color: rgba(239,68,68,0.4);
   color: var(--danger);
-  background: rgba(255,68,68,0.06);
+  background: rgba(239,68,68,0.06);
 }
 
 .ws-dot {
@@ -325,8 +325,8 @@ html, body {
   gap: 5px;
   padding: 4px 10px;
   border-radius: 20px;
-  border: 1px solid rgba(167,139,250,0.4);
-  background: rgba(167,139,250,0.07);
+  border: 1px solid rgba(109,40,217,0.4);
+  background: rgba(109,40,217,0.07);
   color: var(--purple);
   font-size: 10px;
   font-family: var(--font-mono);
@@ -348,15 +348,15 @@ html, body {
 }
 
 .alarm-badge-header.critical {
-  border-color: rgba(255,34,68,0.5);
+  border-color: rgba(153,27,27,0.5);
   color: var(--critical);
-  background: rgba(255,34,68,0.1);
+  background: rgba(153,27,27,0.1);
 }
 
 .alarm-badge-header.warning {
-  border-color: rgba(255,170,0,0.4);
+  border-color: rgba(245,158,11,0.4);
   color: var(--warning);
-  background: rgba(255,170,0,0.07);
+  background: rgba(245,158,11,0.07);
 }
 
 .blink-alarm {
@@ -711,7 +711,7 @@ html, body {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-dim);
-  box-shadow: 0 0 8px rgba(0,212,255,0.15);
+  box-shadow: 0 0 8px rgba(59,130,246,0.15);
 }
 
 .main-panel {
@@ -835,8 +835,8 @@ html, body {
   bottom: 10px;
   right: 10px;
   padding: 5px 10px;
-  background: rgba(0,212,255,0.12);
-  border: 1px solid rgba(0,212,255,0.35);
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.35);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -866,8 +866,8 @@ html, body {
   bottom: 10px;
   right: 10px;
   padding: 5px 10px;
-  background: rgba(0,212,255,0.12);
-  border: 1px solid rgba(0,212,255,0.35);
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.35);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -909,13 +909,13 @@ html, body {
 }
 
 .expand-btn {
-  border-color: rgba(0,212,255,0.4) !important;
+  border-color: rgba(59,130,246,0.4) !important;
   color: var(--accent) !important;
 }
 
 .expand-btn:hover {
   background: var(--accent-dim) !important;
-  box-shadow: 0 0 10px rgba(0,212,255,0.2) !important;
+  box-shadow: 0 0 10px rgba(59,130,246,0.2) !important;
 }
 
 /* Gauge container (legacy, por si se usa en otro lugar) */
@@ -956,7 +956,7 @@ html, body {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,255,0.1);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(59,130,246,0.1);
   overflow: hidden;
   animation: fade-in 0.18s ease;
 }
@@ -1170,7 +1170,7 @@ html, body {
 .trend-tab-btn.active {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(0,212,255,0.08);
+  background: rgba(59,130,246,0.08);
 }
 
 .trend-tab-btn.active-mv {
@@ -1519,7 +1519,7 @@ html, body {
 
 .sp-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 6px rgba(0,212,255,0.2);
+  box-shadow: 0 0 6px rgba(59,130,246,0.2);
 }
 
 .sp-error {
@@ -1531,8 +1531,8 @@ html, body {
 .sp-apply-btn {
   width: 100%;
   padding: 7px;
-  background: rgba(0,212,255,0.08);
-  border: 1px solid rgba(0,212,255,0.3);
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.3);
   border-radius: var(--radius-sm);
   color: var(--accent);
   font-family: var(--font-mono);
@@ -1545,8 +1545,8 @@ html, body {
 }
 
 .sp-apply-btn:hover {
-  background: rgba(0,212,255,0.15);
-  box-shadow: 0 0 10px rgba(0,212,255,0.2);
+  background: rgba(59,130,246,0.15);
+  box-shadow: 0 0 10px rgba(59,130,246,0.2);
 }
 
 /* Epsilon sliders */
@@ -1630,7 +1630,7 @@ html, body {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-dim);
-  box-shadow: 0 0 6px rgba(0,212,255,0.15);
+  box-shadow: 0 0 6px rgba(59,130,246,0.15);
 }
 
 /* Test Cases - Escenarios Mejorados */
@@ -1714,8 +1714,8 @@ html, body {
 
 .op-test-case-load {
   padding: 4px 12px;
-  background: rgba(0,212,255,0.08);
-  border: 1px solid rgba(0,212,255,0.3);
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.3);
   border-radius: var(--radius-sm);
   color: var(--accent);
   font-family: var(--font-mono);
@@ -1726,8 +1726,8 @@ html, body {
 }
 
 .op-test-case-load:hover {
-  background: rgba(0,212,255,0.15);
-  box-shadow: 0 0 8px rgba(0,212,255,0.2);
+  background: rgba(59,130,246,0.15);
+  box-shadow: 0 0 8px rgba(59,130,246,0.2);
 }
 
 .op-test-case-expand {
@@ -1960,13 +1960,13 @@ html, body {
 
 .toast-feedback.success {
   background: rgba(0,255,136,0.1);
-  border-color: rgba(0,255,136,0.4);
+  border-color: rgba(16,185,129,0.4);
   color: var(--success);
 }
 
 .toast-feedback.error {
   background: rgba(255,68,68,0.1);
-  border-color: rgba(255,68,68,0.4);
+  border-color: rgba(239,68,68,0.4);
   color: var(--danger);
 }
 
@@ -2026,7 +2026,7 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: rgba(255,170,0,0.07);
+  background: rgba(245,158,11,0.07);
   border: 1px solid rgba(255,170,0,0.2);
   border-radius: var(--radius-sm);
 }
@@ -2040,7 +2040,7 @@ html, body {
 .alarm-ack-all-btn {
   padding: 3px 10px;
   background: rgba(255,170,0,0.1);
-  border: 1px solid rgba(255,170,0,0.4);
+  border: 1px solid rgba(245,158,11,0.4);
   border-radius: 10px;
   color: var(--warning);
   font-family: var(--font-mono);
@@ -2165,14 +2165,14 @@ html, body {
   font-size: 9px;
   color: var(--success);
   padding: 2px 6px;
-  border: 1px solid rgba(0,255,136,0.3);
+  border: 1px solid rgba(16,185,129,0.3);
   border-radius: 8px;
 }
 
 .alarm-ack-btn {
   padding: 2px 8px;
   background: rgba(255,170,0,0.08);
-  border: 1px solid rgba(255,170,0,0.3);
+  border: 1px solid rgba(245,158,11,0.3);
   border-radius: 8px;
   color: var(--warning);
   font-family: var(--font-mono);

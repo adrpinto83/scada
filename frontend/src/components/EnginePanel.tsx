@@ -40,8 +40,8 @@ export default function EnginePanel({ engineStatus }: Props) {
     const isActive = engineStatus.active === e;
     const isFallback = isActive && engineStatus.active_is_fallback;
     if (!isActive) return { color: "#6b7280", text: "Inactivo" };
-    if (isFallback) return { color: "#ffaa00", text: "Activo (fallback)" };
-    return { color: "#00ff88", text: "Activo" };
+    if (isFallback) return { color: "#f59e0b", text: "Activo (fallback)" };
+    return { color: "#10b981", text: "Activo" };
   };
 
   return (
@@ -87,7 +87,7 @@ export default function EnginePanel({ engineStatus }: Props) {
 
       {!engineStatus.octave_available && (
         <div className="engine-install-hint">
-          <span style={{ color: "#ffaa00" }}>⚠</span> Octave no detectado.
+          <span style={{ color: "#f59e0b" }}>⚠</span> Octave no detectado.
           Instalar: <code>sudo apt install octave</code>
         </div>
       )}
@@ -124,7 +124,7 @@ export default function EnginePanel({ engineStatus }: Props) {
           {benchmark.python.duration_ms && benchmark.octave?.duration_ms && (
             <div className="bench-ratio">
               Ratio Octave/Python:{" "}
-              <strong style={{ color: "#ffaa00" }}>
+              <strong style={{ color: "#f59e0b" }}>
                 {(benchmark.octave.duration_ms / benchmark.python.duration_ms).toFixed(2)}x
               </strong>
             </div>

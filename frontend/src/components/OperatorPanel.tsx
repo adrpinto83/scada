@@ -17,7 +17,7 @@ const TEST_CASES = [
     d2: 0.5,
     objective: "Validar desempeño con modelo nominal y perturbaciones positivas máximas",
     difficulty: "Baja",
-    color: "#00ff88",
+    color: "#10b981",
   },
   {
     num: 2,
@@ -28,7 +28,7 @@ const TEST_CASES = [
     d2: -0.5,
     objective: "Probar robustez con subestimación de ganancias y perturbaciones negativas",
     difficulty: "Media-Alta",
-    color: "#fbbf24",
+    color: "#d97706",
   },
   {
     num: 3,
@@ -39,7 +39,7 @@ const TEST_CASES = [
     d2: -0.5,
     objective: "Evaluar control descentralizado con asimetría en lazos SISO",
     difficulty: "Alta",
-    color: "#fb923c",
+    color: "#f59e0b",
   },
   {
     num: 4,
@@ -50,7 +50,7 @@ const TEST_CASES = [
     d2: 0.5,
     objective: "Verificar estabilidad con máxima ganancia y perturbaciones opuestas",
     difficulty: "Muy Alta",
-    color: "#ff4444",
+    color: "#ef4444",
   },
   {
     num: 5,
@@ -61,7 +61,7 @@ const TEST_CASES = [
     d2: -0.5,
     objective: "Probar rechazo de interacción cruzada entre AT-101 y AT-201",
     difficulty: "Media",
-    color: "#a78bfa",
+    color: "#6d28d9",
   },
 ];
 
@@ -207,14 +207,14 @@ export default function OperatorPanel({ state }: Props) {
             <span className="op-current-item">
               <span className="op-ci-label">Δy1:</span>
               <span className="op-ci-val"
-                style={{ color: Math.abs(state.y[0] - y1Sp) < 0.01 ? "#00ff88" : "#ffaa00" }}>
+                style={{ color: Math.abs(state.y[0] - y1Sp) < 0.01 ? "#10b981" : "#f59e0b" }}>
                 {(state.y[0] - y1Sp).toFixed(4)}
               </span>
             </span>
             <span className="op-current-item">
               <span className="op-ci-label">Δy2:</span>
               <span className="op-ci-val"
-                style={{ color: Math.abs(state.y[1] - y2Sp) < 0.01 ? "#00ff88" : "#ffaa00" }}>
+                style={{ color: Math.abs(state.y[1] - y2Sp) < 0.01 ? "#10b981" : "#f59e0b" }}>
                 {(state.y[1] - y2Sp).toFixed(4)}
               </span>
             </span>
@@ -247,7 +247,7 @@ export default function OperatorPanel({ state }: Props) {
               className="op-range purple"
             />
             <span className="op-eps-val" style={{
-              color: Math.abs(eps) < 0.1 ? "#00ff88" : Math.abs(eps) < 0.5 ? "#ffaa00" : "#ff4444"
+              color: Math.abs(eps) < 0.1 ? "#10b981" : Math.abs(eps) < 0.5 ? "#f59e0b" : "#ef4444"
             }}>
               {eps >= 0 ? "+" : ""}{eps.toFixed(2)}
             </span>
@@ -257,7 +257,7 @@ export default function OperatorPanel({ state }: Props) {
         <div className="op-eps-summary">
           <span className="op-eps-sum-label">ε = [</span>
           {epsilons.map((e, i) => (
-            <span key={i} style={{ color: "#a78bfa", fontFamily: "monospace", fontSize: "11px" }}>
+            <span key={i} style={{ color: "#6d28d9", fontFamily: "monospace", fontSize: "11px" }}>
               {e >= 0 ? "+" : ""}{e.toFixed(2)}{i < 4 ? ", " : ""}
             </span>
           ))}
@@ -325,10 +325,10 @@ export default function OperatorPanel({ state }: Props) {
                     <span
                       className="op-test-detail-badge"
                       style={{
-                        backgroundColor: testCase.difficulty === "Baja" ? "#00ff8822" :
-                                        testCase.difficulty.includes("Media") ? "#ffaa0022" : "#ff444422",
-                        color: testCase.difficulty === "Baja" ? "#00ff88" :
-                              testCase.difficulty.includes("Media") ? "#ffaa00" : "#ff4444"
+                        backgroundColor: testCase.difficulty === "Baja" ? "#10b98122" :
+                                        testCase.difficulty.includes("Media") ? "#f59e0b22" : "#ef444422",
+                        color: testCase.difficulty === "Baja" ? "#10b981" :
+                              testCase.difficulty.includes("Media") ? "#f59e0b" : "#ef4444"
                       }}
                     >
                       {testCase.difficulty}
@@ -344,7 +344,7 @@ export default function OperatorPanel({ state }: Props) {
                           <span
                             className="op-test-eps-value"
                             style={{
-                              color: eps === 0 ? "#888" : eps > 0 ? "#00ff88" : "#ff4444"
+                              color: eps === 0 ? "#888" : eps > 0 ? "#10b981" : "#ef4444"
                             }}
                           >
                             {eps >= 0 ? "+" : ""}{eps.toFixed(1)}
@@ -361,7 +361,7 @@ export default function OperatorPanel({ state }: Props) {
                         <span className="op-test-dist-label">d₁</span>
                         <span
                           className="op-test-dist-value"
-                          style={{ color: testCase.d1 >= 0 ? "#00ff88" : "#ff4444" }}
+                          style={{ color: testCase.d1 >= 0 ? "#10b981" : "#ef4444" }}
                         >
                           {testCase.d1 >= 0 ? "+" : ""}{testCase.d1.toFixed(1)}
                         </span>
@@ -370,7 +370,7 @@ export default function OperatorPanel({ state }: Props) {
                         <span className="op-test-dist-label">d₂</span>
                         <span
                           className="op-test-dist-value"
-                          style={{ color: testCase.d2 >= 0 ? "#00ff88" : "#ff4444" }}
+                          style={{ color: testCase.d2 >= 0 ? "#10b981" : "#ef4444" }}
                         >
                           {testCase.d2 >= 0 ? "+" : ""}{testCase.d2.toFixed(1)}
                         </span>
@@ -393,7 +393,7 @@ export default function OperatorPanel({ state }: Props) {
           <div key={an} className="op-fault-row">
             <div className={`op-fault-indicator ${analyzerFaults[an] ? "fault" : "ok"}`} />
             <span className="op-fault-name">{an === "y1" ? "AT-101 (y1)" : "AT-201 (y2)"}</span>
-            <span className="op-fault-status" style={{ color: analyzerFaults[an] ? "#ff4444" : "#00ff88" }}>
+            <span className="op-fault-status" style={{ color: analyzerFaults[an] ? "#ef4444" : "#10b981" }}>
               {analyzerFaults[an] ? "FALLO" : "OK"}
             </span>
             <button
@@ -414,11 +414,11 @@ export default function OperatorPanel({ state }: Props) {
           </h4>
           <div className="op-state-grid">
             {[
-              { lbl: "u1", val: state.u[0], color: "#a78bfa" },
-              { lbl: "u2", val: state.u[1], color: "#f472b6" },
-              { lbl: "u3", val: state.u[2], color: "#34d399" },
-              { lbl: "d1", val: state.d[0], color: "#fb923c" },
-              { lbl: "d2", val: state.d[1], color: "#fbbf24" },
+              { lbl: "u1", val: state.u[0], color: "#6d28d9" },
+              { lbl: "u2", val: state.u[1], color: "#ec4899" },
+              { lbl: "u3", val: state.u[2], color: "#059669" },
+              { lbl: "d1", val: state.d[0], color: "#f59e0b" },
+              { lbl: "d2", val: state.d[1], color: "#d97706" },
             ].map((item) => (
               <div key={item.lbl} className="op-state-chip">
                 <span className="op-state-lbl">{item.lbl}</span>
@@ -429,7 +429,7 @@ export default function OperatorPanel({ state }: Props) {
             ))}
           </div>
           <div className="op-time-display">
-            t = <span style={{ color: "#00d4ff", fontWeight: "bold" }}>{state.t.toFixed(1)}</span> min
+            t = <span style={{ color: "#3b82f6", fontWeight: "bold" }}>{state.t.toFixed(1)}</span> min
           </div>
         </div>
       )}

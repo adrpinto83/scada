@@ -16,9 +16,9 @@ interface Props {
   state: ProcessState;
 }
 
-const CV_COLORS = ["#00d4ff", "#00ff88", "#a78bfa", "#fb923c", "#f472b6", "#34d399", "#fbbf24"];
-const MV_COLORS = ["#a78bfa", "#f472b6", "#34d399"];
-const DV_COLORS = ["#fb923c", "#fbbf24"];
+const CV_COLORS = ["#3b82f6", "#10b981", "#6d28d9", "#f59e0b", "#ec4899", "#059669", "#d97706"];
+const MV_COLORS = ["#6d28d9", "#ec4899", "#059669"];
+const DV_COLORS = ["#f59e0b", "#d97706"];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -103,8 +103,8 @@ export default function Trends({ state }: Props) {
                   <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
-                  <ReferenceLine y={u_setpoint[0]} stroke="#ffaa00" strokeDasharray="4 3" label={{ value: "SP y1", fill: "#ffaa00", fontSize: 9 }} />
-                  <ReferenceLine y={u_setpoint[1]} stroke="#fb923c" strokeDasharray="4 3" label={{ value: "SP y2", fill: "#fb923c", fontSize: 9 }} />
+                  <ReferenceLine y={u_setpoint[0]} stroke="#f59e0b" strokeDasharray="4 3" label={{ value: "SP y1", fill: "#f59e0b", fontSize: 9 }} />
+                  <ReferenceLine y={u_setpoint[1]} stroke="#f59e0b" strokeDasharray="4 3" label={{ value: "SP y2", fill: "#f59e0b", fontSize: 9 }} />
                   <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
                   <Line type="monotone" dataKey="y1" name="y1: PF Sup" stroke={CV_COLORS[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
                   <Line type="monotone" dataKey="y2" name="y2: PF Lat" stroke={CV_COLORS[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
@@ -159,8 +159,8 @@ export default function Trends({ state }: Props) {
                   <YAxis domain={[-0.5, 0.5]} tick={axisStyle} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace", color: "#9ca3af" }} />
-                  <ReferenceLine y={0.5} stroke="#ff4444" strokeDasharray="2 3" label={{ value: "MAX", fill: "#ff4444", fontSize: 8 }} />
-                  <ReferenceLine y={-0.5} stroke="#ff4444" strokeDasharray="2 3" label={{ value: "MIN", fill: "#ff4444", fontSize: 8 }} />
+                  <ReferenceLine y={0.5} stroke="#ef4444" strokeDasharray="2 3" label={{ value: "MAX", fill: "#ef4444", fontSize: 8 }} />
+                  <ReferenceLine y={-0.5} stroke="#ef4444" strokeDasharray="2 3" label={{ value: "MIN", fill: "#ef4444", fontSize: 8 }} />
                   <ReferenceLine y={0} stroke="#374151" strokeDasharray="2 4" />
                   <Line type="stepAfter" dataKey="u1" name="u1: Ext.Sup" stroke={MV_COLORS[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
                   <Line type="stepAfter" dataKey="u2" name="u2: Ext.Lat" stroke={MV_COLORS[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
@@ -241,14 +241,14 @@ export default function Trends({ state }: Props) {
                 <div className="bw-cards">
                   <div className="bw-card">
                     <div className="bw-card-label">BW Lazo Abierto</div>
-                    <div className="bw-card-value" style={{ color: "#00d4ff" }}>
+                    <div className="bw-card-value" style={{ color: "#3b82f6" }}>
                       {bandwidth.bw_ol.toFixed(4)}
                     </div>
                     <div className="bw-card-unit">rad/min</div>
                   </div>
                   <div className="bw-card">
                     <div className="bw-card-label">BW Lazo Cerrado</div>
-                    <div className="bw-card-value" style={{ color: "#a78bfa" }}>
+                    <div className="bw-card-value" style={{ color: "#6d28d9" }}>
                       {bandwidth.bw_cl.toFixed(4)}
                     </div>
                     <div className="bw-card-unit">rad/min</div>
@@ -285,7 +285,7 @@ export default function Trends({ state }: Props) {
                     {/* Indicador actual */}
                     <div className="bw-ratio-indicator" style={{
                       left: `${Math.min(95, bandwidth.ratio * 20)}%`,
-                      background: bandwidth.compliant ? "#00ff88" : "#ff4444",
+                      background: bandwidth.compliant ? "#10b981" : "#ef4444",
                     }} />
                   </div>
                   <div className="bw-ratio-scale">
