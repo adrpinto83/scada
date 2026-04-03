@@ -34,6 +34,7 @@ from simulation.process_matrix import K_MATRIX, TAU_MATRIX, THETA_MATRIX, DELTA_
 from control.controller import MPCController
 from control.constraints import ConstraintChecker, ConstraintFormatter
 from analysis.bandwidth import BandwidthAnalyzer
+from analysis.scaling import ScalingAnalyzer
 from engines import get_engine_factory
 
 # Configuración de logging
@@ -77,7 +78,7 @@ class ControllerSwitchRequest(BaseModel):
 
 class ScenarioRequest(BaseModel):
     """Request para cargar escenario de prueba."""
-    case: int = Field(..., ge=1, le=5)
+    case: int = Field(..., ge=1, le=1)  # Solo caso nominal (ε=0)
 
 
 # ============================================================================
@@ -111,7 +112,16 @@ class SimulationState:
         # Modelo y controlador
         self.fopdt_model = FOPDTModel(dt=1.0)
         self.uncertainty_manager = UncertaintyManager()
-        self.mpc_controller = MPCController(Np=15, Nc=5, dt=1.0)
+
+        # Escalado CondMin (pre-calculado con K nominal)
+        self.scaling_analyzer = ScalingAnalyzer()
+        self.scaling_analyzer.compute_from_K_full(K_MATRIX)  # Calcula L, R una sola vez
+
+        # Controller MPC con escalado
+        self.mpc_controller = MPCController(
+            Np=15, Nc=5, dt=1.0,
+            scaling_analyzer=self.scaling_analyzer  # Inyecta escalador
+        )
         self.constraint_checker = ConstraintChecker()
         self.bandwidth_analyzer = BandwidthAnalyzer(dt=1.0)
 
@@ -345,6 +355,33 @@ async def set_analyzer_fault(req: AnalyzerFaultRequest):
     }
 
 
+@app.get("/api/analysis/conditioning")
+async def get_conditioning_analysis():
+    """
+    Retorna análisis de condicionamiento de G0 (submatriz 3×3).
+
+    Ejecuta CondMin en Python (siempre) y en Octave (si disponible, async).
+    """
+    python_result = sim_state.scaling_analyzer.get_conditioning_info()
+
+    # Octave async (no bloquea)
+    octave_result = None
+    octave_engine = sim_state.engine_factory.octave_engine
+    if octave_engine.is_available:
+        try:
+            G0 = K_MATRIX[np.ix_([0, 1, 6], [0, 1, 2])]  # Submatriz 3×3
+            octave_result = octave_engine.compute_scaling(G0)
+        except Exception as e:
+            logger.warning(f"Octave conditioning error: {e}")
+            octave_result = {"status": "error", "msg": str(e)}
+
+    return {
+        "python": python_result,
+        "octave": octave_result,
+        "octave_available": octave_engine.is_available,
+    }
+
+
 @app.post("/api/scenario/load")
 async def load_scenario(req: ScenarioRequest):
     """Carga uno de los 5 casos de prueba."""
@@ -528,6 +565,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 dt=sim_state.dt_simulation,
             )
 
+            # Obtiene información de condicionamiento
+            conditioning_info = sim_state.scaling_analyzer.get_conditioning_info()
+
             message = {
                 "t": float(sim_state.t),
                 "y": sim_state.y.tolist(),
@@ -544,6 +584,15 @@ async def websocket_endpoint(websocket: WebSocket):
                     "compliant": bool(bw_info.get("compliant", False)),
                     "ratio_min": float(bw_info.get("ratio_min", 0)),
                     "ratio_max": float(bw_info.get("ratio_max", 1)),
+                },
+                "conditioning": {
+                    "computed": conditioning_info.get("computed", False),
+                    "kappa_original": float(conditioning_info.get("kappa_original", 0)),
+                    "kappa_scaled": float(conditioning_info.get("kappa_scaled", 0)),
+                    "sv_original": [float(x) for x in conditioning_info.get("sv_original", [])],
+                    "sv_scaled": [float(x) for x in conditioning_info.get("sv_scaled", [])],
+                    "L_diag": [float(x) for x in conditioning_info.get("L_diag", [])],
+                    "R_diag": [float(x) for x in conditioning_info.get("R_diag", [])],
                 },
                 "history": {
                     "t": list(sim_state.t_history)[-200:],

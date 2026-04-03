@@ -11,6 +11,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import type { ProcessState } from "../types";
+import ConditioningPanel from "./ConditioningPanel";
 
 interface Props {
   state: ProcessState;
@@ -34,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-type TabType = "cv" | "mv" | "dv" | "bw";
+type TabType = "cv" | "mv" | "dv" | "bw" | "svd";
 
 export default function Trends({ state }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("cv");
@@ -73,6 +74,7 @@ export default function Trends({ state }: Props) {
     { key: "mv", label: "MVs — Entradas Manipuladas" },
     { key: "dv", label: "DVs — Perturbaciones" },
     { key: "bw", label: "Ancho de Banda" },
+    { key: "svd", label: "SVD / Condicionamiento" },
   ];
 
   return (
@@ -311,6 +313,11 @@ export default function Trends({ state }: Props) {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── SVD / Condicionamiento ── */}
+        {activeTab === "svd" && (
+          <ConditioningPanel conditioning={state.conditioning} />
         )}
       </div>
     </div>

@@ -6,72 +6,11 @@ interface Props {
   state: ProcessState | null;
 }
 
-// Definición de casos de prueba con información detallada
-const TEST_CASES = [
-  {
-    num: 1,
-    name: "Caso Nominal",
-    description: "Condiciones nominales sin incertidumbre paramétrica",
-    epsilons: [0, 0, 0, 0, 0],
-    d1: 0.5,
-    d2: 0.5,
-    objective: "Validar desempeño con modelo nominal y perturbaciones positivas máximas",
-    difficulty: "Baja",
-    color: "#10b981",
-  },
-  {
-    num: 2,
-    name: "Incertidumbre Negativa",
-    description: "Ganancias MV reducidas, perturbaciones aumentadas",
-    epsilons: [-1, -1, -1, 1, 1],
-    d1: -0.5,
-    d2: -0.5,
-    objective: "Probar robustez con subestimación de ganancias y perturbaciones negativas",
-    difficulty: "Media-Alta",
-    color: "#d97706",
-  },
-  {
-    num: 3,
-    name: "Asimétrico Lateral",
-    description: "u2 reducida, resto aumentadas - prueba desacoplamiento",
-    epsilons: [1, -1, 1, 1, 1],
-    d1: -0.5,
-    d2: -0.5,
-    objective: "Evaluar control descentralizado con asimetría en lazos SISO",
-    difficulty: "Alta",
-    color: "#f59e0b",
-  },
-  {
-    num: 4,
-    name: "Sobreestimación Total",
-    description: "Todas las ganancias maximizadas con perturbaciones mixtas",
-    epsilons: [1, 1, 1, 1, 1],
-    d1: -0.5,
-    d2: 0.5,
-    objective: "Verificar estabilidad con máxima ganancia y perturbaciones opuestas",
-    difficulty: "Muy Alta",
-    color: "#ef4444",
-  },
-  {
-    num: 5,
-    name: "Interacción Cruzada",
-    description: "u1 reducida, u2 aumentada - máxima interacción entre lazos",
-    epsilons: [-1, 1, 0, 0, 0],
-    d1: -0.5,
-    d2: -0.5,
-    objective: "Probar rechazo de interacción cruzada entre AT-101 y AT-201",
-    difficulty: "Media",
-    color: "#6d28d9",
-  },
-];
-
 export default function OperatorPanel({ state }: Props) {
   const [y1Sp, setY1Sp] = useState(0.0);
   const [y2Sp, setY2Sp] = useState(0.0);
-  const [epsilons, setEpsilons] = useState([0, 0, 0, 0, 0]);
   const [analyzerFaults, setAnalyzerFaults] = useState({ y1: false, y2: false });
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [expandedCase, setExpandedCase] = useState<number | null>(null);
 
   const showFeedback = (msg: string) => {
     setFeedback(msg);
@@ -89,28 +28,15 @@ export default function OperatorPanel({ state }: Props) {
     } catch { showFeedback("Error al aplicar setpoints"); }
   };
 
-  const handleSetUncertainty = async () => {
-    try {
-      const res = await fetch(apiURL("/api/uncertainty"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ epsilons }),
-      });
-      if (res.ok) showFeedback("Incertidumbre aplicada");
-    } catch { showFeedback("Error al aplicar incertidumbre"); }
-  };
-
-  const handleLoadScenario = async (caseNum: number) => {
+  const handleLoadScenario = async () => {
     try {
       const res = await fetch(apiURL("/api/scenario/load"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ case: caseNum }),
+        body: JSON.stringify({ case: 1 }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setEpsilons(data.epsilons);
-        showFeedback(`Caso ${caseNum} cargado`);
+        showFeedback("Caso nominal cargado (ε = 0)");
       }
     } catch { showFeedback("Error cargando escenario"); }
   };
@@ -128,8 +54,6 @@ export default function OperatorPanel({ state }: Props) {
       }
     } catch { showFeedback("Error en analizador"); }
   };
-
-  const epsilonLabels = ["ε₁ (u1)", "ε₂ (u2)", "ε₃ (u3)", "ε₄ (d1)", "ε₅ (d2)"];
 
   return (
     <div className="op-panel">
@@ -226,161 +150,36 @@ export default function OperatorPanel({ state }: Props) {
         </button>
       </div>
 
-      {/* ── Incertidumbre ── */}
+      {/* ── Caso Nominal ── */}
       <div className="op-section">
         <h4 className="op-section-title">
-          <span className="op-section-icon">⚙</span> Incertidumbre Paramétrica ε
-        </h4>
-        <p className="op-section-hint">Rango: [-1, +1] | K_real = K_nom + ΔK·ε</p>
-
-        {epsilons.map((eps, i) => (
-          <div key={i} className="op-eps-row">
-            <span className="op-eps-label">{epsilonLabels[i]}</span>
-            <input
-              type="range" min="-1" max="1" step="0.05"
-              value={eps}
-              onChange={(e) => {
-                const newEps = [...epsilons];
-                newEps[i] = parseFloat(e.target.value);
-                setEpsilons(newEps);
-              }}
-              className="op-range purple"
-            />
-            <span className="op-eps-val" style={{
-              color: Math.abs(eps) < 0.1 ? "#10b981" : Math.abs(eps) < 0.5 ? "#f59e0b" : "#ef4444"
-            }}>
-              {eps >= 0 ? "+" : ""}{eps.toFixed(2)}
-            </span>
-          </div>
-        ))}
-
-        <div className="op-eps-summary">
-          <span className="op-eps-sum-label">ε = [</span>
-          {epsilons.map((e, i) => (
-            <span key={i} style={{ color: "#6d28d9", fontFamily: "monospace", fontSize: "11px" }}>
-              {e >= 0 ? "+" : ""}{e.toFixed(2)}{i < 4 ? ", " : ""}
-            </span>
-          ))}
-          <span className="op-eps-sum-label">]</span>
-        </div>
-
-        <button onClick={handleSetUncertainty} className="op-btn op-btn-secondary">
-          Aplicar Incertidumbre
-        </button>
-      </div>
-
-      {/* ── Casos de Prueba ── */}
-      <div className="op-section">
-        <h4 className="op-section-title">
-          <span className="op-section-icon">▶</span> Escenarios de Prueba
+          <span className="op-section-icon">▶</span> Condición de Prueba
         </h4>
         <p className="op-section-hint" style={{ marginBottom: "12px" }}>
-          5 casos de validación con diferentes condiciones de incertidumbre y perturbaciones
+          Prototipo único sin incertidumbre paramétrica
         </p>
 
-        <div className="op-test-cases">
-          {TEST_CASES.map((testCase) => (
-            <div key={testCase.num} className="op-test-case">
-              {/* Header del caso */}
-              <div
-                className="op-test-case-header"
-                onClick={() => setExpandedCase(expandedCase === testCase.num ? null : testCase.num)}
-                style={{ borderLeftColor: testCase.color }}
-              >
-                <div className="op-test-case-main">
-                  <div className="op-test-case-num" style={{ backgroundColor: testCase.color }}>
-                    {testCase.num}
-                  </div>
-                  <div className="op-test-case-info">
-                    <div className="op-test-case-name">{testCase.name}</div>
-                    <div className="op-test-case-desc">{testCase.description}</div>
-                  </div>
-                </div>
-                <div className="op-test-case-actions">
-                  <button
-                    className="op-test-case-load"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLoadScenario(testCase.num);
-                    }}
-                  >
-                    Cargar
-                  </button>
-                  <span className="op-test-case-expand">
-                    {expandedCase === testCase.num ? "▼" : "▶"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Detalles expandidos */}
-              {expandedCase === testCase.num && (
-                <div className="op-test-case-details">
-                  <div className="op-test-detail-row">
-                    <span className="op-test-detail-label">Objetivo:</span>
-                    <span className="op-test-detail-value">{testCase.objective}</span>
-                  </div>
-
-                  <div className="op-test-detail-row">
-                    <span className="op-test-detail-label">Dificultad:</span>
-                    <span
-                      className="op-test-detail-badge"
-                      style={{
-                        backgroundColor: testCase.difficulty === "Baja" ? "#10b98122" :
-                                        testCase.difficulty.includes("Media") ? "#f59e0b22" : "#ef444422",
-                        color: testCase.difficulty === "Baja" ? "#10b981" :
-                              testCase.difficulty.includes("Media") ? "#f59e0b" : "#ef4444"
-                      }}
-                    >
-                      {testCase.difficulty}
-                    </span>
-                  </div>
-
-                  <div className="op-test-detail-group">
-                    <span className="op-test-detail-label">Vector ε:</span>
-                    <div className="op-test-epsilon-grid">
-                      {testCase.epsilons.map((eps, idx) => (
-                        <div key={idx} className="op-test-epsilon-item">
-                          <span className="op-test-eps-label">ε{idx + 1}</span>
-                          <span
-                            className="op-test-eps-value"
-                            style={{
-                              color: eps === 0 ? "#888" : eps > 0 ? "#10b981" : "#ef4444"
-                            }}
-                          >
-                            {eps >= 0 ? "+" : ""}{eps.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="op-test-detail-group">
-                    <span className="op-test-detail-label">Perturbaciones:</span>
-                    <div className="op-test-disturbance-row">
-                      <div className="op-test-dist-item">
-                        <span className="op-test-dist-label">d₁</span>
-                        <span
-                          className="op-test-dist-value"
-                          style={{ color: testCase.d1 >= 0 ? "#10b981" : "#ef4444" }}
-                        >
-                          {testCase.d1 >= 0 ? "+" : ""}{testCase.d1.toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="op-test-dist-item">
-                        <span className="op-test-dist-label">d₂</span>
-                        <span
-                          className="op-test-dist-value"
-                          style={{ color: testCase.d2 >= 0 ? "#10b981" : "#ef4444" }}
-                        >
-                          {testCase.d2 >= 0 ? "+" : ""}{testCase.d2.toFixed(1)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+        <div className="op-nominal-card">
+          <div className="op-nominal-header">
+            <div className="op-nominal-badge">1</div>
+            <div className="op-nominal-info">
+              <div className="op-nominal-name">Caso Nominal</div>
+              <div className="op-nominal-desc">Condiciones nominales (ε₁...ε₅ = 0)</div>
             </div>
-          ))}
+          </div>
+          <div className="op-nominal-params">
+            <div className="op-param-row">
+              <span className="op-param-label">Vector ε:</span>
+              <span className="op-param-value mono">[+0.00, +0.00, +0.00, +0.00, +0.00]</span>
+            </div>
+            <div className="op-param-row">
+              <span className="op-param-label">Perturbaciones:</span>
+              <span className="op-param-value">d₁ = +0.5,  d₂ = +0.5</span>
+            </div>
+          </div>
+          <button onClick={handleLoadScenario} className="op-btn op-btn-primary">
+            Cargar Condición Nominal
+          </button>
         </div>
       </div>
 

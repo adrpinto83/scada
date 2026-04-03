@@ -38,6 +38,7 @@ export interface ProcessState {
     active: "python" | "octave";
   };
   bandwidth?: BandwidthInfo;
+  conditioning?: ConditioningInfo;
   history?: {
     t: number[];
     y: number[][];
@@ -61,6 +62,16 @@ export interface BandwidthInfo {
   compliant: boolean;
   ratio_min: number;
   ratio_max: number;
+}
+
+export interface ConditioningInfo {
+  computed: boolean;
+  kappa_original: number; // κ antes del escalado
+  kappa_scaled: number; // κ después del CondMin
+  sv_original: number[]; // [σ₁, σ₂, σ₃] valores singulares originales
+  sv_scaled: number[]; // [σ₁', σ₂', σ₃'] valores singulares escalados
+  L_diag: number[]; // Diagonal de matriz L de escalado
+  R_diag: number[]; // Diagonal de matriz R de escalado
 }
 
 export interface EngineStatus {

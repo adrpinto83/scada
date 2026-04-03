@@ -41,6 +41,7 @@ class MPCController:
         Q_weight: float = 1.0,  # Peso seguimiento setpoints
         R_weight: float = 0.1,  # Peso movimiento MV
         rho_u3: float = 10.0,  # Peso minimización u3 (objetivo secundario)
+        scaling_analyzer=None,  # ScalingAnalyzer para CondMin (opcional)
     ):
         """
         Inicializa controlador MPC.
@@ -52,6 +53,7 @@ class MPCController:
             Q_weight: Peso en error de setpoint (OBJ-1)
             R_weight: Peso en movimiento de MVs (penaliza cambios)
             rho_u3: Peso en minimización de u3 (OBJ-2)
+            scaling_analyzer: Instancia de ScalingAnalyzer para escalado (opcional)
         """
         self.Np = Np
         self.Nc = Nc
@@ -69,6 +71,10 @@ class MPCController:
         # En práctica, se usaría modelo dinámico completo del FOPDT
         self.K_static = None
         self.model = None
+
+        # Escalado CondMin (opcional)
+        self.scaling_analyzer = scaling_analyzer
+        self.use_scaling = scaling_analyzer is not None and scaling_analyzer.is_computed
 
         # Cache de última solución
         self.last_u_pred = None
@@ -195,6 +201,13 @@ class MPCController:
                 dy7/y7 ≥ -0.5 (soft con slack)
                 Si y1 falla: no penalizar error en y1
 
+        Con escalado CondMin (si use_scaling=True):
+          Las variables se transforman al espacio escalado:
+            u_esc = R_inv @ u, y_esc = L @ y para G0 (y1,y2,y7)
+          El QP se resuelve en espacio escalado con K_esc = L @ K_g0 @ R
+          Las restricciones se transforman apropiadamente
+          La solución se transforma de vuelta al espacio físico
+
         Args:
             y_current: Vector [y1, ..., y7] actual
             y_setpoint: Vector setpoint [y1_sp, y2_sp, 0, 0, ..., 0]
@@ -211,6 +224,48 @@ class MPCController:
               - 'feasible': bool (problema resoluble)
               - 'status': str (resultado del solucionador)
         """
+        # ====== Transformación al espacio escalado (si aplica) ======
+        u_prev_working = u_previous.copy()
+        y_sp_working = y_setpoint.copy()
+        K_working = K_real.copy()
+        u_lim_min = self.u_min
+        u_lim_max = self.u_max
+        du_lim = self.du_max
+
+        use_scaling_local = False
+        if self.use_scaling:
+            use_scaling_local = True
+            R_mv = self.scaling_analyzer.R          # (3×3)
+            R_inv = self.scaling_analyzer.R_inv     # (3×3)
+            L_mv = self.scaling_analyzer.L          # (3×3)
+
+            # Transformar MVs al espacio escalado
+            u_prev_working = R_inv @ u_previous     # (3,)
+
+            # Setpoints para G0: solo y1, y2, y7
+            y_sp_g0 = np.array([y_setpoint[0], y_setpoint[1], y_setpoint[6]])
+            y_sp_g0_esc = L_mv @ y_sp_g0
+            # Reconstruir setpoint completo (otros CVs en 0)
+            y_sp_working = y_setpoint.copy()
+            y_sp_working[0] = y_sp_g0_esc[0]
+            y_sp_working[1] = y_sp_g0_esc[1]
+            y_sp_working[6] = y_sp_g0_esc[2]
+
+            # K escalada para submatriz G0
+            K_g0 = K_real[np.ix_([0,1,6], [0,1,2])]  # (3×3)
+            K_g0_esc = L_mv @ K_g0 @ R_mv             # (3×3)
+            # Reconstruir K escalada completa (filas 0,1,6 y columnas 0,1,2)
+            K_working = K_real.copy()
+            K_working[np.ix_([0,1,6], [0,1,2])] = K_g0_esc
+
+            # Límites transformados
+            u_lim_min_vec = np.array([self.u_min, self.u_min, self.u_min])
+            u_lim_max_vec = np.array([self.u_max, self.u_max, self.u_max])
+            du_lim_vec = np.array([self.du_max, self.du_max, self.du_max])
+            u_lim_min = (R_inv @ u_lim_min_vec).min()  # Conservador
+            u_lim_max = (R_inv @ u_lim_max_vec).max()  # Conservador
+            du_lim = (R_inv @ du_lim_vec).max()        # Conservador
+
         # Variables de decisión CVXPY
         # Δu_delta[k] para k=0..Nc-1 (cambios incrementales)
         # y_pred[k] para k=1..Np (predicciones)
@@ -221,7 +276,7 @@ class MPCController:
         # Reconstruye u absoluto a partir de cambios incrementales
         # u[0] = u_prev + du[0], u[1] = u[0] + du[1], etc.
         u_abs = []
-        u_curr = u_previous.copy()
+        u_curr = u_prev_working.copy()  # Usa versión potencialmente escalada
         for k in range(self.Nc):
             u_curr = u_curr + delta_u[k]
             u_abs.append(u_curr)
@@ -236,14 +291,14 @@ class MPCController:
         # RC-1, RC-2: Límites de magnitud en MVs
         for k in range(self.Nc):
             for i in range(3):
-                constraints.append(u_abs[k][i] >= self.u_min)
-                constraints.append(u_abs[k][i] <= self.u_max)
+                constraints.append(u_abs[k][i] >= u_lim_min)
+                constraints.append(u_abs[k][i] <= u_lim_max)
 
         # RC-3: Rate limiting en Δu
         for k in range(self.Nc):
             for i in range(3):
-                constraints.append(delta_u[k, i] >= -self.du_max)
-                constraints.append(delta_u[k, i] <= self.du_max)
+                constraints.append(delta_u[k, i] >= -du_lim)
+                constraints.append(delta_u[k, i] <= du_lim)
 
         # Predicción de salidas
         # Modelo lineal simplificado: y_pred[k] = K_real @ u_actual + K_real[:, 3:] @ d
@@ -253,14 +308,14 @@ class MPCController:
             u_k = u_abs[k]
             # Predicción: y = K @ [u1, u2, u3, d1, d2]
             inputs_k = cp.hstack([u_k, d_measured])  # 5 entradas
-            y_k_pred = K_real @ inputs_k
+            y_k_pred = K_working @ inputs_k
             constraints.append(y_pred[k] == y_k_pred)
 
         # Para pasos k > Nc, asume u constante en u_abs[Nc-1]
         u_final = u_abs[self.Nc - 1]
         for k in range(self.Nc, self.Np):
             inputs_final = cp.hstack([u_final, d_measured])
-            y_final = K_real @ inputs_final
+            y_final = K_working @ inputs_final
             constraints.append(y_pred[k] == y_final)
 
         # RC-6: y1 ∈ [-0.5, 0.5] (soft constraint con slack variable)
@@ -281,9 +336,9 @@ class MPCController:
         error_tracking = 0.0
         for k in range(self.Np):
             if not self.analyzer_faults.get("y1", False):
-                error_tracking += self.Q_weight * cp.sum_squares(y_pred[k, 0] - y_setpoint[0])
+                error_tracking += self.Q_weight * cp.sum_squares(y_pred[k, 0] - y_sp_working[0])
             if not self.analyzer_faults.get("y2", False):
-                error_tracking += self.Q_weight * cp.sum_squares(y_pred[k, 1] - y_setpoint[1])
+                error_tracking += self.Q_weight * cp.sum_squares(y_pred[k, 1] - y_sp_working[1])
 
         # Término 2: Penalización de cambios en MVs (suavidad)
         energy_term = 0.0
@@ -333,6 +388,16 @@ class MPCController:
         u_optimal = u_abs[0].value if hasattr(u_abs[0], 'value') else np.array(u_abs[0])
         u_delta = delta_u[0].value if hasattr(delta_u[0], 'value') else np.array(delta_u[0])
         y_pred_step = y_pred[0].value if hasattr(y_pred[0], 'value') else np.array(y_pred[0])
+
+        # Transformar de vuelta al espacio físico si se usó escalado
+        if use_scaling_local:
+            u_optimal = self.scaling_analyzer.R @ u_optimal  # Transforma MVs
+            u_delta = self.scaling_analyzer.R @ u_delta      # Transforma cambios
+            # y_pred_step contiene y escaladas en posiciones 0, 1, 6
+            # Transformar de vuelta usando L_inv
+            y_esc = np.array(y_pred_step)
+            y_esc[[0,1,6]] = self.scaling_analyzer.L_inv @ y_esc[[0,1,6]]
+            y_pred_step = y_esc
 
         return {
             "u_optimal": np.array(u_optimal).flatten(),

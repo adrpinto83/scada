@@ -382,6 +382,45 @@ class OctaveEngine:
             logger.warning(f"Octave apply_uncertainty fallback: {e}")
             return self.fallback_engine.apply_uncertainty(K_nominal, delta_K, epsilons)
 
+    def compute_scaling(self, G0: np.ndarray) -> Dict:
+        """
+        Calcula escalado óptimo CondMin vía Octave/sqp.
+
+        Minimiza cond(L @ G0 @ R) con L, R diagonales.
+
+        Args:
+            G0: Submatriz 3×3 (y1, y2, y7 × u1, u2, u3)
+
+        Returns:
+            Dict con:
+                - status: 'ok' o 'error'
+                - sv_original, sv_scaled: valores singulares
+                - kappa_original, kappa_scaled: números de condición
+                - L_diag, R_diag: factores de escalado
+                - engine: 'octave'
+        """
+        if not self.is_available:
+            return {"status": "error", "msg": "Octave no disponible", "engine": "octave"}
+
+        try:
+            payload = {
+                "G0": np.array(G0).tolist(),
+            }
+            result = self._call_octave("scaling_analysis.m", payload)
+
+            if result.get("status") == "error":
+                logger.error(f"Octave scaling error: {result.get('msg')}")
+                return result
+
+            return {
+                **result,
+                "status": "ok",
+                "engine": "octave",
+            }
+        except Exception as e:
+            logger.warning(f"Octave compute_scaling fallback: {e}")
+            return {"status": "error", "msg": str(e), "engine": "octave"}
+
     def get_call_history(self, limit: int = 50) -> list:
         """Retorna últimas N llamadas a Octave."""
         return self.call_history[-limit:]

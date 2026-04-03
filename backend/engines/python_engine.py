@@ -15,6 +15,7 @@ from control.controller import MPCController
 from control.decentralized_controller import DecentralizedController
 from control.constraints import ConstraintChecker
 from analysis.bandwidth import BandwidthAnalyzer
+from analysis.scaling import cond_min
 
 
 class PythonEngine:
@@ -366,3 +367,35 @@ class PythonEngine:
             })
 
         return info
+
+    def compute_scaling(self, G0: np.ndarray) -> Dict:
+        """
+        Calcula escalado óptimo CondMin vía Python/scipy.
+
+        Minimiza cond(L @ G0 @ R) con L, R diagonales.
+
+        Args:
+            G0: Submatriz 3×3 (y1, y2, y7 × u1, u2, u3)
+
+        Returns:
+            Dict con:
+                - status: 'ok' o 'error'
+                - sv_original, sv_scaled: valores singulares
+                - kappa_original, kappa_scaled: números de condición
+                - L_diag, R_diag: factores de escalado
+                - engine: 'python'
+        """
+        try:
+            L, R, kappa_min, info = cond_min(G0)
+            return {
+                **info,
+                "status": "ok",
+                "msg": "",
+                "engine": "python",
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "msg": str(e),
+                "engine": "python",
+            }

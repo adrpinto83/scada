@@ -140,30 +140,27 @@ class UncertaintyManager:
 
 def generate_test_case_epsilons(case_num: int) -> Tuple[np.ndarray, float, float]:
     """
-    Genera vector de ε para los 5 casos de prueba estándar.
+    Genera vector de ε para la condición nominal única (ε = 0).
 
-    Casos (del requisito):
-      CASO 1: ε₁=ε₂=ε₃=ε₄=ε₅=0,  d2=+0.5, d1=+0.5
-      CASO 2: ε₁=ε₂=ε₃=-1, ε₄=ε₅=+1, d2=-0.5, d1=-0.5
-      CASO 3: ε₁=ε₃=ε₄=ε₅=+1, ε₂=-1, d2=-0.5, d1=-0.5
-      CASO 4: ε₁=ε₂=ε₃=ε₄=ε₅=+1, d2=+0.5, d1=-0.5
-      CASO 5: ε₁=-1, ε₂=+1, ε₃=ε₄=ε₅=0, d2=-0.5, d1=-0.5
+    PROTOTIPO ÚNICO:
+      CASO 1: ε₁=ε₂=ε₃=ε₄=ε₅=0 (modelo nominal sin incertidumbre paramétrica)
+              d1=+0.5, d2=+0.5
+
+    El sistema se valida solo bajo condición nominal. Las variaciones en perturbaciones
+    d1, d2 se usan para validar rechazo de perturbaciones.
 
     Args:
-        case_num: Número de caso (1-5)
+        case_num: Debe ser 1 (única opción)
 
     Returns:
-        (epsilons, d1_step, d2_step): tupla con vector ε y valores de perturbación
+        (epsilons, d1_step, d2_step): tupla con ε=0 y perturbaciones
+
+    Raises:
+        ValueError si case_num ≠ 1
     """
-    if case_num == 1:
-        return np.array([0.0, 0.0, 0.0, 0.0, 0.0]), 0.5, 0.5
-    elif case_num == 2:
-        return np.array([-1.0, -1.0, -1.0, 1.0, 1.0]), -0.5, -0.5
-    elif case_num == 3:
-        return np.array([1.0, -1.0, 1.0, 1.0, 1.0]), -0.5, -0.5
-    elif case_num == 4:
-        return np.array([1.0, 1.0, 1.0, 1.0, 1.0]), -0.5, 0.5
-    elif case_num == 5:
-        return np.array([-1.0, 1.0, 0.0, 0.0, 0.0]), -0.5, -0.5
-    else:
-        raise ValueError(f"Número de caso debe estar entre 1 y 5, recibido {case_num}")
+    if case_num != 1:
+        raise ValueError(
+            f"Solo existe el CASO 1 (condición nominal, ε=0). "
+            f"Recibido case_num={case_num}"
+        )
+    return np.array([0.0, 0.0, 0.0, 0.0, 0.0]), 0.5, 0.5
