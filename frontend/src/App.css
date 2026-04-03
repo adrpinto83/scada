@@ -7,28 +7,29 @@
 
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
-  /* LIGHT INDUSTRIAL THEME */
-  --bg-root:    #f8f9fa;
+  /* LIGHT MODE (Default) */
+  --bg-root:    #f5f6f8;
   --bg-panel:   #ffffff;
   --bg-card:    #ffffff;
-  --bg-surface: #f0f2f5;
-  --bg-hover:   #e8eaed;
-  --border:     #d0d3d8;
-  --border-dim: #e0e3e8;
+  --bg-surface: #eff1f5;
+  --bg-hover:   #e8ecf1;
+  --border:     #cbd5e0;
+  --border-dim: #dce2eb;
 
-  /* Colores industriales neutros */
-  --accent:     #2c5aa0;
-  --accent-dim: rgba(44,90,160,0.08);
-  --success:    #4a8f7e;
+  /* Colores industriales premium */
+  --accent:     #1e3a8a;
+  --accent-dim: rgba(30,58,138,0.06);
+  --success:    #059669;
   --warning:    #d97706;
-  --danger:     #c84c0c;
-  --critical:   #b03c0a;
-  --purple:     #6b4fa0;
+  --danger:     #dc2626;
+  --critical:   #991b1b;
+  --purple:     #7c3aed;
+  --cyan:       #0891b2;
 
-  --text-primary:   #1a1d23;
-  --text-secondary: #5a6270;
-  --text-dim:       #8b92a2;
-  --text-accent:    #2c5aa0;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-dim:       #8b94a8;
+  --text-accent:    #1e3a8a;
 
   --font-mono:  'Share Tech Mono', 'Courier New', monospace;
   --font-ui:    'Exo 2', 'Segoe UI', sans-serif;
@@ -37,8 +38,37 @@
   --radius-md:  8px;
   --radius-lg:  12px;
 
+  --shadow-panel: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-glow:  0 0 8px rgba(30,58,138,0.1);
+  --shadow-card:  0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ── DARK MODE ────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-root:    #0f172a;
+  --bg-panel:   #1e293b;
+  --bg-card:    #1e293b;
+  --bg-surface: #334155;
+  --bg-hover:   #475569;
+  --border:     #475569;
+  --border-dim: #334155;
+
+  --accent:     #60a5fa;
+  --accent-dim: rgba(96,165,250,0.12);
+  --success:    #10b981;
+  --warning:    #f59e0b;
+  --danger:     #ef4444;
+  --critical:   #991b1b;
+  --purple:     #a78bfa;
+  --cyan:       #22d3ee;
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-dim:       #94a3b8;
+  --text-accent:    #60a5fa;
+
   --shadow-panel: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-glow:  0 0 12px rgba(59,130,246,0.2);
+  --shadow-glow:  0 0 12px rgba(96,165,250,0.2);
   --shadow-card:  0 2px 8px rgba(0,0,0,0.3);
 }
 
@@ -2754,6 +2784,79 @@ html, body {
   border-left: 3px solid var(--success);
 }
 
+/* Engines comparison */
+.cond-engine-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  margin-bottom: 6px;
+}
+
+[data-theme="dark"] .cond-engine-row {
+  background: var(--bg-panel);
+}
+
+.cond-engine-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cond-engine-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+}
+
+.cond-engine-badge.python {
+  background: #3776ab;
+}
+
+.cond-engine-badge.octave {
+  background: #1d5a7a;
+}
+
+/* Concordancia */
+.cond-concordance {
+  padding: 6px 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.cond-conc-label {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.cond-conc-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.cond-conc-pct {
+  color: var(--text-dim);
+  font-size: 9px;
+  margin-left: 2px;
+}
+
 .cond-kappa-label {
   font-size: 9px;
   color: var(--text-secondary);
@@ -2885,6 +2988,44 @@ html, body {
 .cond-interp-text p {
   margin: 0;
   color: var(--text-secondary);
+}
+
+/* ── THEME TOGGLE ───────────────────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle:active {
+  transform: scale(0.98);
+}
+
+.theme-icon {
+  font-size: 14px;
+  display: inline-block;
+}
+
+.theme-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */

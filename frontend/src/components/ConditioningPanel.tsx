@@ -2,9 +2,10 @@ import type { ConditioningInfo } from "../types";
 
 interface Props {
   conditioning?: ConditioningInfo | null;
+  octaveData?: any | null;
 }
 
-export default function ConditioningPanel({ conditioning }: Props) {
+export default function ConditioningPanel({ conditioning, octaveData }: Props) {
   if (!conditioning || !conditioning.computed) {
     return (
       <div className="cond-panel">
@@ -17,6 +18,9 @@ export default function ConditioningPanel({ conditioning }: Props) {
   }
 
   const improvement = ((conditioning.kappa_original - conditioning.kappa_scaled) / conditioning.kappa_original * 100).toFixed(1);
+  const octaveImprovement = octaveData && octaveData.kappa_original
+    ? ((octaveData.kappa_original - octaveData.kappa_scaled) / octaveData.kappa_original * 100).toFixed(1)
+    : null;
 
   return (
     <div className="cond-panel">
@@ -75,21 +79,67 @@ export default function ConditioningPanel({ conditioning }: Props) {
       {/* ── Números de Condición ── */}
       <div className="cond-section">
         <h4 className="cond-section-title">Número de Condición (κ = σ₁/σ₃)</h4>
-        <div className="cond-kappa-comparison">
-          <div className="cond-kappa-item original">
-            <div className="cond-kappa-label">Original</div>
-            <div className="cond-kappa-value">{conditioning.kappa_original.toFixed(2)}</div>
+
+        {/* Python Engine */}
+        <div className="cond-engine-row">
+          <div className="cond-engine-label">
+            <span className="cond-engine-badge python">Python</span>
+            SLSQP
           </div>
-          <div className="cond-kappa-arrow">→</div>
-          <div className="cond-kappa-item scaled">
-            <div className="cond-kappa-label">Escalado</div>
-            <div className="cond-kappa-value">{conditioning.kappa_scaled.toFixed(2)}</div>
-          </div>
-          <div className="cond-kappa-improvement">
-            <span className="cond-improvement-label">Mejora</span>
-            <span className="cond-improvement-value">{improvement}%</span>
+          <div className="cond-kappa-comparison">
+            <div className="cond-kappa-item original">
+              <div className="cond-kappa-label">Original</div>
+              <div className="cond-kappa-value">{conditioning.kappa_original.toFixed(3)}</div>
+            </div>
+            <div className="cond-kappa-arrow">→</div>
+            <div className="cond-kappa-item scaled">
+              <div className="cond-kappa-label">Escalado</div>
+              <div className="cond-kappa-value">{conditioning.kappa_scaled.toFixed(3)}</div>
+            </div>
+            <div className="cond-kappa-improvement">
+              <span className="cond-improvement-label">Mejora</span>
+              <span className="cond-improvement-value">{improvement}%</span>
+            </div>
           </div>
         </div>
+
+        {/* Octave Engine (si disponible) */}
+        {octaveData && octaveData.kappa_original && (
+          <div className="cond-engine-row">
+            <div className="cond-engine-label">
+              <span className="cond-engine-badge octave">Octave</span>
+              SQP
+            </div>
+            <div className="cond-kappa-comparison">
+              <div className="cond-kappa-item original">
+                <div className="cond-kappa-label">Original</div>
+                <div className="cond-kappa-value">{octaveData.kappa_original.toFixed(3)}</div>
+              </div>
+              <div className="cond-kappa-arrow">→</div>
+              <div className="cond-kappa-item scaled">
+                <div className="cond-kappa-label">Escalado</div>
+                <div className="cond-kappa-value">{octaveData.kappa_scaled.toFixed(3)}</div>
+              </div>
+              <div className="cond-kappa-improvement">
+                <span className="cond-improvement-label">Mejora</span>
+                <span className="cond-improvement-value">{octaveImprovement}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Concordancia */}
+        {octaveData && octaveData.kappa_original && (
+          <div className="cond-concordance">
+            <span className="cond-conc-label">Diferencia Python ↔ Octave:</span>
+            <span className="cond-conc-value">
+              {Math.abs(conditioning.kappa_scaled - octaveData.kappa_scaled).toFixed(3)}
+              <span className="cond-conc-pct">
+                ({(Math.abs(conditioning.kappa_scaled - octaveData.kappa_scaled) / conditioning.kappa_scaled * 100).toFixed(2)}%)
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Matrices de Escalado ── */}

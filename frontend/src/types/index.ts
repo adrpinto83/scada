@@ -72,6 +72,15 @@ export interface ConditioningInfo {
   sv_scaled: number[]; // [σ₁', σ₂', σ₃'] valores singulares escalados
   L_diag: number[]; // Diagonal de matriz L de escalado
   R_diag: number[]; // Diagonal de matriz R de escalado
+  octave?: {
+    status: string;
+    kappa_original: number;
+    kappa_scaled: number;
+    sv_original: number[];
+    sv_scaled: number[];
+    L_diag: number[];
+    R_diag: number[];
+  };
 }
 
 export interface EngineStatus {

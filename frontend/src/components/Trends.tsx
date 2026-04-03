@@ -317,7 +317,10 @@ export default function Trends({ state }: Props) {
 
         {/* ── SVD / Condicionamiento ── */}
         {activeTab === "svd" && (
-          <ConditioningPanel conditioning={state.conditioning} />
+          <ConditioningPanel
+            conditioning={state.conditioning}
+            octaveData={state.conditioning?.octave}
+          />
         )}
       </div>
     </div>
